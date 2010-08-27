@@ -84,7 +84,12 @@ class DblByteOperation( BaseOperation ):
         return content
 
     def convert2unicode( self, str ):
-        return unicode( str, "cp950" )
+        result=""
+        try:
+            result=unicode( str, "cp950" )
+        except UnicodeDecodeError, e:
+            print e
+        return result
 
     def extractChapters( self, str ):
         return int( self.empty_str.join(str), 10 )
@@ -159,7 +164,8 @@ class PDBFile:
         try:
             file = open( self.pdb_filename, "rb" )
             file.seek( self.chapter_start_offsets[chap], os.SEEK_SET )
-            raw_str = file.read( self.chapter_end_offsets[chap]-self.chapter_start_offsets[chap] )
+            count=self.chapter_end_offsets[chap]-self.chapter_start_offsets[chap] 
+            raw_str = file.read( count )
             content = self.operation.processString( raw_str )
             result = self.operation.convert2unicode( self.empty_str.join(content) )
         finally:
@@ -181,9 +187,9 @@ if __name__ == "__main__":
     if loc[1]:
         encoding = loc[1]
         
-    pdb = PDBFile( "66d.updb" ).parse()
+    pdb = PDBFile( "66d.pdb" ).parse()
     print( "Book name: %s " % pdb.book_name.encode( encoding ) )
     print( "Total %d chapters." % pdb.chapters )
     for chapter_title in pdb.chapter_titles:
         print( chapter_title.encode(encoding) )
-    print( pdb.chapter(0).encode(encoding) )
+    print( pdb.chapter(4).encode(encoding) )
