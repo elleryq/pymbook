@@ -17,29 +17,70 @@ APP="pymbook"
 DIR="/usr/share/locale"
 
 class Pager:
-    def __init__(self, content, width, height):
-        self.content=content
-        words=len(self.content)
-        self.pages=[]
-        words_in_a_page=width*height
-        i=0
-        pages=words/words_in_a_page
-        if (words%words_in_a_page)>0:
-            pages=pages+1
-        for i in range(pages+1):
-            self.pages.append( content[i*words_in_a_page:((i+1)*words_in_a_page)] )
+    current=0
+    pages=[]
 
-    def get_page(self, page):
-        return self.pages[page]
+    def __init__(self, pdb, width, height):
+        for num in range(pdb.chapters):
+            content = pdb.chapter(num)
+            columns=0
+            words=0
+            page=[]
+            num_in_chapter=0
+            for c in content:
+                if c==u'\u000a' or words>=height:
+                    columns=columns+1
+                    words=0
+                if c!='\u000d' and c!='\u000a':
+                    words=words+1
+                page.append( c )
+                if columns>=width:
+                    self.pages.append( (num, num_in_chapter, page) )
+                    num_in_chapter=num_in_chapter+1
+                    page=[]
+                    columns=0
+                    words=0
+            self.pages.append( (num, num_in_chapter, page) )
 
-    def get_total_pages( self ):
+    def get_current_page(self):
+        return self.pages[self.current][2]
+
+    def get_current_page_in_chapter(self):
+        return self.pages[self.current][1]
+
+    def get_current_chapter(self):
+        return self.pages[self.current][0]
+
+    def count_pages(self):
         return len(self.pages)
+
+    def count_chapter_pages(self,chapter):
+        pages=[ ch for ch, n_in_p, p in self.pages if ch==chapter ]
+        return len(pages)
+
+    def go_chapter(self,chapter):
+        self.current=0
+        for chap, n_in_page, page in self.pages:
+            self.current=self.current+1
+            if chap==chapter:
+                break
+
+    def go_previous(self):
+        self.current=self.current-1
+        if self.current<0:
+            self.current=0
+
+    def go_next(self):
+        self.current=self.current+1
+        if self.current>=len(self.pages):
+            self.current=len(self.pages)-1
 
 class PDBCanvas(gtk.DrawingArea):
     font_name = '文泉驛微米黑'
     font_size = 16
     pdb=None
-    page=0
+    old_rect=None
+    pager=None
 
     def __init__(self):
         super(PDBCanvas, self).__init__()
@@ -50,7 +91,8 @@ class PDBCanvas(gtk.DrawingArea):
 
     def set_pdb(self, pdb):
         self.pdb=pdb
-        page=0
+        self.page=0
+        self.chapter=0
 
     def set_font(self, font):
         t=font.split(' ')
@@ -66,31 +108,53 @@ class PDBCanvas(gtk.DrawingArea):
         # get canvas size
         rect=self.get_allocation()
 
-        # draw rectangle for verify
+        cell_width=self.font_size+self.font_size/4
+        cell_height=self.font_size+self.font_size/3
+
+        if not self.old_rect and self.old_rect!=rect:
+            self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
+            self.y_pos_list=range(cell_height, rect.height, cell_height)
+            columns_in_page=len( self.x_pos_list )
+            words_in_line=len(self.y_pos_list)
+            current_chapter=None
+            if self.pager:
+                current_chapter=self.pager.current_chapter()
+            self.pager=Pager(self.pdb, columns_in_page, words_in_line)
+            if current_chapter:
+                self.pager.go_chapter(current_chapter)
+            self.old_rect=rect
+        s=self.pager.get_current_page()
+
+        # draw chapter indicator
         cx.save()
-        cx.set_source_rgb(.6, 0, 0)
-        cx.rectangle( 0, 0, rect.width, rect.height )
+        seg=rect.width/self.pdb.chapters
+        x=rect.width-(self.pager.get_current_chapter()+1)*seg
+        cx.set_source_rgb( 1.0, 0, 0 )
+        cx.move_to( x, 0 )
+        cx.line_to( x+seg, 0 )
         cx.stroke()
         cx.restore()
 
-        print rect
-        cell_width=self.font_size+self.font_size/4
-        cell_height=self.font_size+self.font_size/2
+        # draw page/chapter indicator
+        cx.save()
+        seg=rect.width/self.pager.count_chapter_pages(self.pager.get_current_chapter())
+        x=rect.width-(self.pager.get_current_page_in_chapter()+1)*seg
+        cx.set_source_rgb( 1.0, 0, 0 )
+        cx.move_to( x, rect.height-1 )
+        cx.line_to( x+seg, rect.height-1 )
+        cx.stroke()
+        cx.restore()
 
-        columns_in_page=len(range(rect.width-cell_width*2, rect.y,
-                    -cell_width))
-        words_in_line=len(range(cell_height, rect.height, cell_height))
-        self.pager=Pager(self.pdb.chapter(0), columns_in_page, words_in_line)
-        s=self.pager.get_page(self.page)
-
+        # draw text
         cx.save()
         cx.set_source_rgb( 0, 0, 0 )
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
-
         pos=0
-        for x in range( rect.width-cell_width*2, rect.y, -cell_width ):
-            for y in range( cell_height, rect.height, cell_height ):
+        for x in self.x_pos_list:
+            for y in self.y_pos_list:
+                if pos>=len(s):
+                    break
                 if s[pos]==u'\u000d': # skip 0x0d0x0a
                     pos=pos+2
                     break
@@ -116,14 +180,10 @@ class PDBCanvas(gtk.DrawingArea):
         if not self.pdb:
             return False
 
-        print event.direction
         if event.direction==gtk.gdk.SCROLL_UP:
-            if self.page>0:
-                self.page=self.page-1
+            self.pager.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
-            self.page=self.page+1
-            if self.page>self.pager.get_total_pages():
-                self.page=self.pager.get_total_pages()
+            self.pager.go_next()
         self.redraw_canvas()
         return True
 
@@ -138,7 +198,7 @@ class MainWindow:
     def initializeComponent(self):
     	try:
     		self.builder = gtk.Builder()
-    		ui_filename = "main_window.xml"
+    		ui_filename = "main_window.glade"
     		self.builder.add_from_file( ui_filename )
     	except Exception, e:
     		print e
