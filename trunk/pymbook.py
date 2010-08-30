@@ -17,10 +17,9 @@ APP="pymbook"
 DIR="/usr/share/locale"
 
 class Pager:
-    current=0
-    pages=[]
-
     def __init__(self, pdb, width, height):
+        self.current=0
+        self.pages=[]
         for num in range(pdb.chapters):
             content = pdb.chapter(num)
             columns=0
@@ -76,14 +75,15 @@ class Pager:
             self.current=len(self.pages)-1
 
 class PDBCanvas(gtk.DrawingArea):
-    font_name = '文泉驛微米黑'
-    font_size = 16
-    pdb=None
-    old_rect=None
-    pager=None
-
     def __init__(self):
         super(PDBCanvas, self).__init__()
+        self.font_name = '文泉驛微米黑'
+        self.font_size = 16
+        self.pdb=None
+        self.old_rect=None
+        self.pager=None
+        self.recalc=True
+
         self.set_events(gtk.gdk.SCROLL_MASK)
 
         self.connect("expose_event", self.expose)
@@ -111,18 +111,26 @@ class PDBCanvas(gtk.DrawingArea):
         cell_width=self.font_size+self.font_size/4
         cell_height=self.font_size+self.font_size/3
 
-        if not self.old_rect and self.old_rect!=rect:
+        # The first time.
+        if not self.old_rect:
+            self.recalc=True
+        # If windows size is changed.
+        elif self.old_rect and self.old_rect!=rect:
+            self.recalc=True
+
+        if self.recalc:
             self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
             self.y_pos_list=range(cell_height, rect.height, cell_height)
             columns_in_page=len( self.x_pos_list )
             words_in_line=len(self.y_pos_list)
             current_chapter=None
             if self.pager:
-                current_chapter=self.pager.current_chapter()
+                current_chapter=self.pager.get_current_chapter()
             self.pager=Pager(self.pdb, columns_in_page, words_in_line)
             if current_chapter:
                 self.pager.go_chapter(current_chapter)
             self.old_rect=rect
+            self.recalc=False
         s=self.pager.get_current_page()
 
         # draw chapter indicator
@@ -188,19 +196,19 @@ class PDBCanvas(gtk.DrawingArea):
         return True
 
 class MainWindow:
-    pdb=None
-    pdb_filename=None
-    font_name=None
-
     def __init__(self):
-    	self.initializeComponent()
+        self.pdb=None
+        self.pdb_filename=None
+        self.font_name=None
+    	self.initialize_component()
 
-    def initializeComponent(self):
+    def initialize_component(self):
     	try:
     		self.builder = gtk.Builder()
     		ui_filename = "main_window.glade"
     		self.builder.add_from_file( ui_filename )
     	except Exception, e:
+            # TODO: add gui exception displaying.
     		print e
     		return
     	self.window = self.builder.get_object("window1")
