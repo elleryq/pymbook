@@ -16,6 +16,21 @@ import pdb
 APP="pymbook"
 DIR="/usr/share/locale"
 
+def tr( s ):
+    return s
+
+locale.setlocale( locale.LC_ALL, '' )
+locale.bindtextdomain( APP, DIR )
+gettext.bindtextdomain( APP, DIR )
+locale.textdomain( APP )
+try:
+    lang=gettext.translation( APP, DIR )
+    lang.install( APP, DIR )
+    _=lang.gettext
+except:
+    # fallback
+    _=tr
+
 class Pager:
     def __init__(self, pdb, width, height):
         self.current=0
@@ -73,6 +88,46 @@ class Pager:
         self.current=self.current+1
         if self.current>=len(self.pages):
             self.current=len(self.pages)-1
+
+class PDBIndex(gtk.DrawingArea):
+    def __init__(self):
+        super(PDBIndex, self).__init__()
+        self.font_name = '文泉驛微米黑'
+        self.font_size = 16
+        self.pdb=None
+
+        self.connect("expose_event", self.expose)
+        #self.connect("scroll-event", self.scroll_event )
+        # TODO: need to handle click event.
+
+    def set_pdb(self, pdb):
+        self.pdb=pdb
+        self.page=0
+        self.chapter=0
+
+    def set_font(self, font):
+        t=font.split(' ')
+        self.font_name = t[0]
+        self.font_size = int(t[-1])
+
+    def expose(self, widget, event):
+        #if not self.pdb:
+        #    return False
+
+        cx=widget.window.cairo_create()
+
+        # get canvas size
+        rect=self.get_allocation()
+
+        cx.save()
+        cx.set_source_rgb( 0, 0, 0 )
+        cx.select_font_face( self.font_name )
+        cx.set_font_size( self.font_size)
+        cx.move_to( 0, 100 )
+        cx.show_text( "TODO: Index" )
+        cx.restore()
+
+        return False
 
 class PDBCanvas(gtk.DrawingArea):
     def __init__(self):
@@ -214,12 +269,32 @@ class MainWindow:
     	self.window = self.builder.get_object("window1")
         self.window.set_position( gtk.WIN_POS_CENTER )
         self.act_quit = self.builder.get_object("act_quit")
-        self.vbox1 = self.builder.get_object("vbox1")
+
+        self.notebook=self.builder.get_object("notebook1")
+      
+        # Add index note
+        self.pdb_index=PDBIndex()
+        self.pdb_index.set_size_request( 800, 600 )
+        frame=gtk.Frame()
+        frame.set_size_request(800, 600)
+        frame.show()
+        frame.add(self.pdb_index)
+        label = gtk.Label(_("Index"))
+        self.notebook.append_page(frame, label)
+        self.pdb_index.show()
+
+        # Add content note 
         self.pdb_canvas=PDBCanvas()
         self.pdb_canvas.set_size_request( 800, 600 )
-        self.vbox1.pack_start( self.pdb_canvas, False, False, 0)
-    	self.builder.connect_signals(self)
+        frame=gtk.Frame()
+        frame.set_size_request(800, 600)
+        frame.show()
+        frame.add(self.pdb_canvas)
+        label = gtk.Label(_("Content"))
+        self.notebook.append_page(frame, label)
         self.pdb_canvas.show()
+      
+    	self.builder.connect_signals(self)
     	self.window.show()
 
     def window1_delete_event_cb(self, widget, event, data=None):
@@ -274,21 +349,7 @@ class MainWindow:
         dialog.destroy()
         self.pdb_canvas.redraw_canvas()
 
-def tr( s ):
-    return s
-
 def main():
-    locale.setlocale( locale.LC_ALL, '' )
-    locale.bindtextdomain( APP, DIR )
-    gettext.bindtextdomain( APP, DIR )
-    locale.textdomain( APP )
-    try:
-    	lang=gettext.translation( APP, DIR )
-    	lang.install( APP, DIR )
-    	_=lang.gettext
-    except:
-    	# fallback
-    	_=tr
     window=MainWindow()
     gtk.main()
 
