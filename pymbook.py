@@ -263,9 +263,15 @@ class MainWindow:
     		ui_filename = "main_window.glade"
     		self.builder.add_from_file( ui_filename )
     	except Exception, e:
-            # TODO: add gui exception displaying.
-    		print e
-    		return
+            err_dialog = gtk.MessageDialog(
+                    self.window, 
+                    gtk.DIALOG_MODAL, 
+                    gtk.MESSAGE_ERROR, 
+                    gtk.BUTTONS_CLOSE, 
+                    repr(e))
+            result = err_dialog.run()
+            err_dialog.destroy()
+            return
     	self.window = self.builder.get_object("window1")
         self.window.set_position( gtk.WIN_POS_CENTER )
         self.act_quit = self.builder.get_object("act_quit")
