@@ -104,6 +104,28 @@
           <object class="GtkToolbar" id="toolbar1">
             <property name="visible">True</property>
             <child>
+              <object class="GtkToolButton" id="btn_open">
+                <property name="visible">True</property>
+                <property name="related_action">act_open</property>
+                <property name="label" translatable="yes">Open</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-open</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton1">
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolButton" id="btn_shelf">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Shelf</property>
