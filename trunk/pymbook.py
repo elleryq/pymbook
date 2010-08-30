@@ -8,6 +8,7 @@ import locale, gettext
 import pygtk
 pygtk.require('2.0')
 import gtk
+import gobject
 import math
 import cairo
 
@@ -75,9 +76,9 @@ class Pager:
     def go_chapter(self,chapter):
         self.current=0
         for chap, n_in_page, page in self.pages:
-            self.current=self.current+1
             if chap==chapter:
                 break
+            self.current=self.current+1
 
     def go_previous(self):
         self.current=self.current-1
@@ -89,22 +90,39 @@ class Pager:
         if self.current>=len(self.pages):
             self.current=len(self.pages)-1
 
-class PDBIndex(gtk.DrawingArea):
+class PDBWidget(gtk.DrawingArea):
+    font_name = '文泉驛微米黑'
+    font_size = 16
+    pdb = None
+
+    def __init__(self):
+        super(PDBWidget, self).__init__()
+
+    def redraw_canvas(self):
+        if self.window:
+            alloc=self.get_allocation()
+            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
+            self.window.invalidate_rect(rect, True)
+            self.window.process_updates(True)
+
+class PDBIndex(PDBWidget):
+    __gsignals__ = dict(index_changed=(gobject.SIGNAL_RUN_FIRST,
+                                      gobject.TYPE_NONE,
+                                      (gobject.TYPE_INT,)))
+
     def __init__(self):
         super(PDBIndex, self).__init__()
-        self.font_name = '文泉驛微米黑'
-        self.font_size = 16
-        self.pdb=None
         self.old_rect=None
+        self.recalc=True
+        self.pdb=None
 
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
-        # TODO: need to handle click event.
+        self.connect("button_release_event", self.button_release)
+        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK )
 
     def set_pdb(self, pdb):
         self.pdb=pdb
-        self.page=0
-        self.chapter=0
 
     def set_font(self, font):
         t=font.split(' ')
@@ -176,22 +194,22 @@ class PDBIndex(gtk.DrawingArea):
     def scroll_event(self, widget, event):
         return True
 
-    def redraw_canvas(self):
-        if self.window:
-            alloc=self.get_allocation()
-            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-            self.window.invalidate_rect(rect, True)
-            self.window.process_updates(True)
+    def button_release(self, widget, event):
+        # TODO: according event.x and event.y to decide which chapter is clicked.
+        if not self.pdb:
+            return False
+        chapter=0
+        self.emit("index_changed", chapter)
+        return False
 
-class PDBCanvas(gtk.DrawingArea):
+class PDBCanvas(PDBWidget):
     def __init__(self):
         super(PDBCanvas, self).__init__()
-        self.font_name = '文泉驛微米黑'
-        self.font_size = 16
-        self.pdb=None
         self.old_rect=None
         self.pager=None
         self.recalc=True
+        self.pdb=None
+        self.chapter=0
 
         self.set_events(gtk.gdk.SCROLL_MASK)
 
@@ -202,6 +220,9 @@ class PDBCanvas(gtk.DrawingArea):
         self.pdb=pdb
         self.page=0
         self.chapter=0
+
+    def set_chapter(self, chapter):
+        self.chapter=chapter
 
     def set_font(self, font):
         t=font.split(' ')
@@ -232,12 +253,8 @@ class PDBCanvas(gtk.DrawingArea):
             self.y_pos_list=range(cell_height, rect.height, cell_height)
             columns_in_page=len( self.x_pos_list )
             words_in_line=len(self.y_pos_list)
-            current_chapter=None
-            if self.pager:
-                current_chapter=self.pager.get_current_chapter()
             self.pager=Pager(self.pdb, columns_in_page, words_in_line)
-            if current_chapter:
-                self.pager.go_chapter(current_chapter)
+            self.pager.go_chapter(self.chapter)
             self.old_rect=rect
             self.recalc=False
         s=self.pager.get_current_page()
@@ -286,13 +303,6 @@ class PDBCanvas(gtk.DrawingArea):
 
         return False
 
-    def redraw_canvas(self):
-        if self.window:
-            alloc=self.get_allocation()
-            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-            self.window.invalidate_rect(rect, True)
-            self.window.process_updates(True)
-
     def scroll_event(self, widget, event):
         if not self.pdb:
             return False
@@ -301,6 +311,7 @@ class PDBCanvas(gtk.DrawingArea):
             self.pager.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
             self.pager.go_next()
+        self.chapter=self.pager.get_current_chapter()
         self.redraw_canvas()
         return True
 
@@ -353,7 +364,9 @@ class MainWindow:
         label = gtk.Label(_("Content"))
         self.notebook.append_page(frame, label)
         self.pdb_canvas.show()
-      
+
+        # connect signals
+        self.pdb_index.connect("index_changed", self.pdbindex_index_changed_cb)
     	self.builder.connect_signals(self)
     	self.window.show()
 
@@ -409,6 +422,15 @@ class MainWindow:
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()
+        self.pdb_canvas.redraw_canvas()
+
+    def act_index_activate_cb(self, b):
+        self.notebook.set_current_page(0)
+
+    def pdbindex_index_changed_cb(self, widget, chapter):
+        print "chapter=%d" % chapter
+        self.notebook.set_current_page(1)
+        self.pdb_canvas.set_chapter(chapter)
         self.pdb_canvas.redraw_canvas()
 
 def main():

@@ -107,9 +107,9 @@
               <object class="GtkToolButton" id="btn_open">
                 <property name="visible">True</property>
                 <property name="related_action">act_open</property>
+                <property name="use_action_appearance">True</property>
                 <property name="label" translatable="yes">Open</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-open</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -140,6 +140,7 @@
             <child>
               <object class="GtkToolButton" id="btn_index">
                 <property name="visible">True</property>
+                <property name="related_action">act_index</property>
                 <property name="label" translatable="yes">Index</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-index</property>
@@ -172,6 +173,7 @@
           <object class="GtkNotebook" id="notebook1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="show_tabs">False</property>
             <child>
               <placeholder/>
             </child>
@@ -205,16 +207,26 @@
   </object>
   <object class="GtkAction" id="act_about">
     <property name="label">_About</property>
+    <property name="tooltip">About</property>
     <property name="stock_id">gtk-about</property>
     <signal name="activate" handler="act_about_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_open">
     <property name="label">_Open</property>
+    <property name="tooltip">Open a pdb file</property>
     <property name="stock_id">gtk-open</property>
     <signal name="activate" handler="act_open_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_font">
     <property name="label">_Font</property>
+    <property name="tooltip">Open font dialog</property>
+    <property name="stock_id">gtk-select-font</property>
     <signal name="activate" handler="act_font_activate_cb"/>
+  </object>
+  <object class="GtkAction" id="act_index">
+    <property name="label">_Index</property>
+    <property name="tooltip">Go Index</property>
+    <property name="stock_id">gtk-index</property>
+    <signal name="activate" handler="act_index_activate_cb"/>
   </object>
 </interface>
