@@ -95,9 +95,10 @@ class PDBIndex(gtk.DrawingArea):
         self.font_name = '文泉驛微米黑'
         self.font_size = 16
         self.pdb=None
+        self.old_rect=None
 
         self.connect("expose_event", self.expose)
-        #self.connect("scroll-event", self.scroll_event )
+        self.connect("scroll-event", self.scroll_event )
         # TODO: need to handle click event.
 
     def set_pdb(self, pdb):
@@ -111,23 +112,76 @@ class PDBIndex(gtk.DrawingArea):
         self.font_size = int(t[-1])
 
     def expose(self, widget, event):
-        #if not self.pdb:
-        #    return False
+        if not self.pdb:
+            return False
 
         cx=widget.window.cairo_create()
 
         # get canvas size
         rect=self.get_allocation()
 
-        cx.save()
+        cell_width=self.font_size*2
+        cell_height=self.font_size+self.font_size/3
+
+        # The first time.
+        if not self.old_rect:
+            self.recalc=True
+        # If windows size is changed.
+        elif self.old_rect and self.old_rect!=rect:
+            self.recalc=True
+
+        if self.recalc:
+            self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
+            self.y_pos_list=range(0, rect.height, (rect.height-1)/2)
+            columns_in_page=len( self.x_pos_list )
+            self.old_rect=rect
+            self.recalc=False
+
+        # draw grid
         cx.set_source_rgb( 0, 0, 0 )
+        for x in self.x_pos_list:
+            cx.save()
+            cx.move_to( x, self.y_pos_list[0] )
+            cx.line_to( x, self.y_pos_list[-1] )
+            cx.stroke()
+            cx.restore()
+        for y in self.y_pos_list:
+            cx.save()
+            cx.move_to( self.x_pos_list[0], y )
+            cx.line_to( self.x_pos_list[-1], y )
+            cx.stroke()
+            cx.restore()
+
+        cx.save()
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
-        cx.move_to( 0, 100 )
-        cx.show_text( "TODO: Index" )
+        start_x = 1
+        start_y = 0
+        columns_in_page=len( self.x_pos_list )
+        for chapter_title in self.pdb.chapter_titles:
+            x = self.x_pos_list[ start_x ] + cell_width/4
+            y = self.y_pos_list[ start_y ] + cell_height
+            for c in chapter_title:
+                cx.move_to( x, y )
+                cx.show_text( c )
+                y=y+cell_height
+            start_x=start_x+1
+            if start_x>columns_in_page:
+                start_x=1
+                start_y=start_y+1
         cx.restore()
 
         return False
+
+    def scroll_event(self, widget, event):
+        return True
+
+    def redraw_canvas(self):
+        if self.window:
+            alloc=self.get_allocation()
+            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
+            self.window.invalidate_rect(rect, True)
+            self.window.process_updates(True)
 
 class PDBCanvas(gtk.DrawingArea):
     def __init__(self):
@@ -337,6 +391,8 @@ class MainWindow:
         if response==gtk.RESPONSE_OK:
             self.pdb_filename=dialog.get_filename()
             self.pdb=pdb.PDBFile(self.pdb_filename).parse()
+            self.pdb_index.set_pdb( self.pdb )
+            self.pdb_index.redraw_canvas()
             self.pdb_canvas.set_pdb( self.pdb )
             self.pdb_canvas.redraw_canvas()
         elif response==gtk.RESPONSE_CANCEL:
