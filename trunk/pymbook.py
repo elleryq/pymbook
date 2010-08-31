@@ -106,7 +106,7 @@ class PDBWidget(gtk.DrawingArea):
             self.window.process_updates(True)
 
 class PDBIndex(PDBWidget):
-    __gsignals__ = dict(index_changed=(gobject.SIGNAL_RUN_FIRST,
+    __gsignals__ = dict(chapter_selected=(gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,
                                       (gobject.TYPE_INT,)))
 
@@ -199,7 +199,7 @@ class PDBIndex(PDBWidget):
         if not self.pdb:
             return False
         chapter=0
-        self.emit("index_changed", chapter)
+        self.emit("chapter_selected", chapter)
         return False
 
 class PDBCanvas(PDBWidget):
@@ -366,7 +366,7 @@ class MainWindow:
         self.pdb_canvas.show()
 
         # connect signals
-        self.pdb_index.connect("index_changed", self.pdbindex_index_changed_cb)
+        self.pdb_index.connect("chapter_selected", self.pdbindex_index_changed_cb)
     	self.builder.connect_signals(self)
     	self.window.show()
 
