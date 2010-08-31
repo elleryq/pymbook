@@ -470,10 +470,22 @@ class MainWindow:
         self.pdb_canvas.set_chapter(chapter)
         self.pdb_canvas.redraw_canvas()
 
+def find_pdbs(path):
+    """Find all pdb/updb files according the specified path(absolute path).
+    And return the filename lists which contain full path.
+    """
+    import glob
+    import os
+    return glob.glob( os.path.join( path, "*.pdb" ) ) + glob.glob( os.path.join( path, "*.updb" ) )
+
 def main():
     window=MainWindow()
     gtk.main()
 
 if __name__ == "__main__":
     main()
+
+# TODO: Index paging.
+# TODO: Shelf function.
+# TODO: configuration.
 
