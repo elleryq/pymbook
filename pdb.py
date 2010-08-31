@@ -88,7 +88,7 @@ class DblByteOperation( BaseOperation ):
         try:
             result=unicode( str, "cp950" )
         except UnicodeDecodeError, e:
-            print e
+            raise e
         return result
 
     def extractChapters( self, str ):
@@ -127,7 +127,7 @@ class PDBFile:
     def __parseChapterOffsets(self, file):
         # get the offset of every chapters.
         file.seek( PDB_CHAPTER_OFFSET, os.SEEK_SET )
-        for i in range( self.records+1 ):
+        for i in range( self.records ):
             offset_record = file.read( 8 )
             if len(offset_record)!=8:
                 raise PDBException( "Offset record size is not enough(8). %d" % i )
@@ -150,7 +150,7 @@ class PDBFile:
             self.__parseChapterOffsets(file)
             self.__parseBasicInformation(file)
         except PDBException, e:
-            print e
+            raise e
         finally:
             file.close()
         return self
@@ -187,9 +187,18 @@ if __name__ == "__main__":
     if loc[1]:
         encoding = loc[1]
         
-    pdb = PDBFile( "66d.pdb" ).parse()
-    print( "Book name: %s " % pdb.book_name.encode( encoding ) )
-    print( "Total %d chapters." % pdb.chapters )
-    for chapter_title in pdb.chapter_titles:
-        print( chapter_title.encode(encoding) )
-    print( pdb.chapter(4).encode(encoding) )
+    if len(sys.argv)<2:
+        print( """Need 1 arguments.
+Usage: %s pdb_filename""" % sys.argv[0] )
+        sys.exit(-1)
+
+    try:
+        pdb = PDBFile( sys.argv[1] ).parse()
+        print( "Book name: %s " % pdb.book_name.encode( encoding ) )
+        print( "Total %d chapters." % pdb.chapters )
+        for chapter_title in pdb.chapter_titles:
+            print( chapter_title.encode(encoding) )
+        print( pdb.chapter(5).encode(encoding) )
+    except BaseException, e:
+        print e
+
