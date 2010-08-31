@@ -150,7 +150,8 @@ class PDBIndex(PDBWidget):
 
         if self.recalc:
             self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-            self.y_pos_list=range(0, rect.height, (rect.height-1)/2)
+            self.y_pos_list=range(0, rect.height, (rect.height-1) )
+            self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
             columns_in_page=len( self.x_pos_list )
             self.old_rect=rect
             self.recalc=False
@@ -195,10 +196,13 @@ class PDBIndex(PDBWidget):
         return True
 
     def button_release(self, widget, event):
-        # TODO: according event.x and event.y to decide which chapter is clicked.
         if not self.pdb:
             return False
         chapter=0
+        for r in self.regions:
+            if r.point_in( int(event.x), int(event.y) ):
+                break
+            chapter=chapter+1
         self.emit("chapter_selected", chapter)
         return False
 
@@ -223,6 +227,7 @@ class PDBCanvas(PDBWidget):
 
     def set_chapter(self, chapter):
         self.chapter=chapter
+        self.recalc=True
 
     def set_font(self, font):
         t=font.split(' ')
@@ -428,7 +433,6 @@ class MainWindow:
         self.notebook.set_current_page(0)
 
     def pdbindex_index_changed_cb(self, widget, chapter):
-        print "chapter=%d" % chapter
         self.notebook.set_current_page(1)
         self.pdb_canvas.set_chapter(chapter)
         self.pdb_canvas.redraw_canvas()
