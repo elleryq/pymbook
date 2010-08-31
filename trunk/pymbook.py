@@ -16,6 +16,14 @@ import pdb
 
 APP="pymbook"
 DIR="/usr/share/locale"
+VERSION="0.1"
+COMMENT=""
+
+DEFAULT_WIDTH=640
+DEFAULT_HEIGHT=480
+
+INDEX_TAB=0
+CONTENT_TAB=1
 
 def tr( s ):
     return s
@@ -32,7 +40,7 @@ except:
     # fallback
     _=tr
 
-class Pager:
+class ContentPager:
     def __init__(self, pdb, width, height):
         self.current=0
         self.pages=[]
@@ -98,6 +106,11 @@ class PDBWidget(gtk.DrawingArea):
     def __init__(self):
         super(PDBWidget, self).__init__()
 
+    def set_font(self, font):
+        t=font.split(' ')
+        self.font_name = t[0]
+        self.font_size = int(t[-1])
+
     def redraw_canvas(self):
         if self.window:
             alloc=self.get_allocation()
@@ -119,15 +132,13 @@ class PDBIndex(PDBWidget):
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
-        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK )
+        self.connect("motion-notify-event", self.motion_notify)
+        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
+                        gtk.gdk.BUTTON_RELEASE_MASK | 
+                        gtk.gdk.POINTER_MOTION_MASK )
 
     def set_pdb(self, pdb):
         self.pdb=pdb
-
-    def set_font(self, font):
-        t=font.split(' ')
-        self.font_name = t[0]
-        self.font_size = int(t[-1])
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -198,13 +209,25 @@ class PDBIndex(PDBWidget):
     def button_release(self, widget, event):
         if not self.pdb:
             return False
+        self.emit("chapter_selected", self.which_chapter(event.x, event.y ))
+        return False
+    
+    def motion_notify(self, widget, event):
+        if not self.pdb:
+            return False
+        # TODO:
+        #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
+        return False
+
+    def which_chapter(self, x, y):
         chapter=0
         for r in self.regions:
-            if r.point_in( int(event.x), int(event.y) ):
+            if r.point_in( int(x), int(y) ):
                 break
             chapter=chapter+1
-        self.emit("chapter_selected", chapter)
-        return False
+        if chapter>=self.pdb.chapters:
+            chapter=-1
+        return chapter
 
 class PDBCanvas(PDBWidget):
     def __init__(self):
@@ -228,11 +251,6 @@ class PDBCanvas(PDBWidget):
     def set_chapter(self, chapter):
         self.chapter=chapter
         self.recalc=True
-
-    def set_font(self, font):
-        t=font.split(' ')
-        self.font_name = t[0]
-        self.font_size = int(t[-1])
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -258,7 +276,7 @@ class PDBCanvas(PDBWidget):
             self.y_pos_list=range(cell_height, rect.height, cell_height)
             columns_in_page=len( self.x_pos_list )
             words_in_line=len(self.y_pos_list)
-            self.pager=Pager(self.pdb, columns_in_page, words_in_line)
+            self.pager=ContentPager(self.pdb, columns_in_page, words_in_line)
             self.pager.go_chapter(self.chapter)
             self.old_rect=rect
             self.recalc=False
@@ -324,7 +342,8 @@ class MainWindow:
     def __init__(self):
         self.pdb=None
         self.pdb_filename=None
-        self.font_name=None
+        self.font_name='文泉驛微米黑'
+        self.font_size=16
     	self.initialize_component()
 
     def initialize_component(self):
@@ -343,27 +362,28 @@ class MainWindow:
             err_dialog.destroy()
             return
     	self.window = self.builder.get_object("window1")
+        self.window.set_title( APP )
         self.window.set_position( gtk.WIN_POS_CENTER )
         self.act_quit = self.builder.get_object("act_quit")
 
         self.notebook=self.builder.get_object("notebook1")
       
-        # Add index note
+        # Add index tab
         self.pdb_index=PDBIndex()
-        self.pdb_index.set_size_request( 800, 600 )
+        self.pdb_index.set_size_request( DEFAULT_WIDTH, DEFAULT_HEIGHT )
         frame=gtk.Frame()
-        frame.set_size_request(800, 600)
+        frame.set_size_request(DEFAULT_WIDTH, DEFAULT_HEIGHT)
         frame.show()
         frame.add(self.pdb_index)
         label = gtk.Label(_("Index"))
         self.notebook.append_page(frame, label)
         self.pdb_index.show()
 
-        # Add content note 
+        # Add content tab
         self.pdb_canvas=PDBCanvas()
-        self.pdb_canvas.set_size_request( 800, 600 )
+        self.pdb_canvas.set_size_request( DEFAULT_WIDTH, DEFAULT_HEIGHT )
         frame=gtk.Frame()
-        frame.set_size_request(800, 600)
+        frame.set_size_request(DEFAULT_WIDTH, DEFAULT_HEIGHT)
         frame.show()
         frame.add(self.pdb_canvas)
         label = gtk.Label(_("Content"))
@@ -371,7 +391,7 @@ class MainWindow:
         self.pdb_canvas.show()
 
         # connect signals
-        self.pdb_index.connect("chapter_selected", self.pdbindex_index_changed_cb)
+        self.pdb_index.connect("chapter_selected", self.pdbindex_chapter_selected_cb)
     	self.builder.connect_signals(self)
     	self.window.show()
 
@@ -383,16 +403,16 @@ class MainWindow:
     
     def act_about_activate_cb(self, b):
         dialog=gtk.AboutDialog()
-        dialog.set_name('')
-        dialog.set_version('')
-        dialog.set_authors( [''] )
-        dialog.set_comments('')
-        dialog.set_license('Distributed under the GPL3.')
+        dialog.set_name( APP )
+        dialog.set_version( VERSION )
+        dialog.set_authors( ['Yan-ren Tsai'] )
+        dialog.set_comments( COMMENT )
+        dialog.set_license( _("Distributed under the GPL3.") )
         dialog.run()
         dialog.destroy()
 
     def act_open_activate_cb(self, b):
-        dialog=gtk.FileChooserDialog( "Open...",
+        dialog=gtk.FileChooserDialog( _("Open..."),
                 None,
                 gtk.FILE_CHOOSER_ACTION_OPEN,
                 (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
@@ -400,7 +420,7 @@ class MainWindow:
         dialog.set_default_response(gtk.RESPONSE_OK)
 
         filter=gtk.FileFilter()
-        filter.set_name("PDB/uPDB files")
+        filter.set_name(_("PDB/uPDB files"))
         filter.add_pattern("*.pdb")
         filter.add_pattern("*.updb")
         dialog.add_filter(filter)
@@ -418,22 +438,35 @@ class MainWindow:
         dialog.destroy()
 
     def act_font_activate_cb(self, b):
-        dialog=gtk.FontSelectionDialog('Choose font')
+        dialog=gtk.FontSelectionDialog(_("Choose font"))
         dialog.set_default_response(gtk.RESPONSE_OK)
+        dialog.set_font_name( "%s %d" % (self.font_name, self.font_size) )
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
             self.font_name=dialog.get_font_name()
+            self.pdb_index.set_font(self.font_name)
             self.pdb_canvas.set_font(self.font_name)
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()
+        self.pdb_index.redraw_canvas()
         self.pdb_canvas.redraw_canvas()
 
     def act_index_activate_cb(self, b):
-        self.notebook.set_current_page(0)
+        self.notebook.set_current_page(INDEX_TAB)
 
-    def pdbindex_index_changed_cb(self, widget, chapter):
-        self.notebook.set_current_page(1)
+    def pdbindex_chapter_selected_cb(self, widget, chapter):
+        if chapter==-1:
+            dialog=gtk.MessageDialog(
+                    self.window, 
+                    gtk.DIALOG_MODAL, 
+                    gtk.MESSAGE_ERROR, 
+                    gtk.BUTTONS_CLOSE, 
+                    _("No such chapter."))
+            result = dialog.run()
+            dialog.destroy()
+            return
+        self.notebook.set_current_page(CONTENT_TAB)
         self.pdb_canvas.set_chapter(chapter)
         self.pdb_canvas.redraw_canvas()
 
