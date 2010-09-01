@@ -3,6 +3,7 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="window1">
+    <property name="icon">logo.png</property>
     <signal name="delete_event" handler="window1_delete_event_cb"/>
     <child>
       <object class="GtkVBox" id="vbox1">
@@ -28,6 +29,25 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem6">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="imagemenuitem7">
+                        <property name="visible">True</property>
+                        <property name="tooltip_text" translatable="yes">Preference</property>
+                        <property name="related_action">act_preference</property>
+                        <property name="use_action_appearance">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem8">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem5">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
@@ -48,6 +68,15 @@
                 <child type="submenu">
                   <object class="GtkMenu" id="menu2">
                     <property name="visible">True</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem5">
+                        <property name="visible">True</property>
+                        <property name="related_action">act_index</property>
+                        <property name="use_action_appearance">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -228,5 +257,11 @@
     <property name="tooltip">Go Index</property>
     <property name="stock_id">gtk-index</property>
     <signal name="activate" handler="act_index_activate_cb"/>
+  </object>
+  <object class="GtkAction" id="act_preference">
+    <property name="label">_Preference</property>
+    <property name="tooltip">Preference</property>
+    <property name="stock_id">gtk-preferences</property>
+    <signal name="activate" handler="act_preference_activate_cb"/>
   </object>
 </interface>
