@@ -37,7 +37,7 @@ except:
     # fallback
     _=tr
 
-class ContentPager:
+class TextPager:
     def __init__(self, pdb, width, height):
         self.current=0
         self.pages=[]
@@ -201,6 +201,15 @@ class PDBContents(PDBWidget):
         return False
 
     def scroll_event(self, widget, event):
+        if not self.pdb:
+            return False
+
+        if event.direction==gtk.gdk.SCROLL_UP:
+            self.pager.go_previous()
+        elif event.direction==gtk.gdk.SCROLL_DOWN:
+            self.pager.go_next()
+		#self.chapter=self.pager.get_current_chapter()
+        self.redraw_canvas()
         return True
 
     def button_release(self, widget, event):
@@ -273,7 +282,7 @@ class PDBCanvas(PDBWidget):
             self.y_pos_list=range(cell_height, rect.height, cell_height)
             columns_in_page=len( self.x_pos_list )
             words_in_line=len(self.y_pos_list)
-            self.pager=ContentPager(self.pdb, columns_in_page, words_in_line)
+            self.pager=TextPager(self.pdb, columns_in_page, words_in_line)
             self.pager.go_chapter(self.chapter)
             self.old_rect=rect
             self.recalc=False
