@@ -19,9 +19,6 @@ DIR="/usr/share/locale"
 VERSION="0.1"
 COMMENT=""
 
-DEFAULT_WIDTH=640
-DEFAULT_HEIGHT=480
-
 INDEX_TAB=0
 CONTENT_TAB=1
 
@@ -339,12 +336,30 @@ class PDBCanvas(PDBWidget):
         return True
 
 class MainWindow:
+    DEFAULT_WIDTH = 640
+    DEFAULT_HEIGHT = 480
+    DEFAULT_SHELF_PATH = "~/download/"
+    ENTRY_SHELF_PATH = "bookshelf_path"
+    ENTRY_WIDTH = "width"
+    ENTRY_HEIGHT = "height"
+    DEFAULT_CONFIG_CONTENT = """
+[mbook]
+%s = %s
+%s = %d
+%s = %d
+""" % ( ENTRY_SHELF_PATH, DEFAULT_SHELF_PATH, 
+        ENTRY_WIDTH, DEFAULT_WIDTH, 
+        ENTRY_HEIGHT, DEFAULT_HEIGHT )
+    CONFIG_FILENAME = "~/.config/pymbook.conf"
+    SECTION = 'mbook'
+
     def __init__(self):
         self.pdb = None
         self.pdb_filename = None
         self.font_name = '文泉驛微米黑'
         self.font_size = 16
         self.pref_dlg = None
+        self.load_config()
     	self.initialize_component()
 
     def initialize_component(self):
@@ -370,20 +385,22 @@ class MainWindow:
       
         # Add index tab
         self.pdb_index=PDBIndex()
-        self.pdb_index.set_size_request( DEFAULT_WIDTH, DEFAULT_HEIGHT )
+        self.pdb_index.set_size_request( 
+                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
+                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         frame=gtk.Frame()
-        frame.set_size_request(DEFAULT_WIDTH, DEFAULT_HEIGHT)
         frame.show()
-        frame.add(self.pdb_index)
-        label = gtk.Label(_("Index"))
-        self.notebook.append_page(frame, label)
+        frame.add( self.pdb_index )
+        label = gtk.Label( _("Index") )
+        self.notebook.append_page( frame, label )
         self.pdb_index.show()
 
         # Add content tab
         self.pdb_canvas=PDBCanvas()
-        self.pdb_canvas.set_size_request( DEFAULT_WIDTH, DEFAULT_HEIGHT )
         frame=gtk.Frame()
-        frame.set_size_request(DEFAULT_WIDTH, DEFAULT_HEIGHT)
+        frame.set_size_request(
+                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
+                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         frame.show()
         frame.add(self.pdb_canvas)
         label = gtk.Label(_("Content"))
@@ -394,6 +411,19 @@ class MainWindow:
         self.pdb_index.connect("chapter_selected", self.pdbindex_chapter_selected_cb)
     	self.builder.connect_signals(self)
     	self.window.show()
+
+    def load_config(self):
+        import ConfigParser
+        import io
+        self.config = ConfigParser.RawConfigParser()
+        if os.path.exists( os.path.expanduser( self.CONFIG_FILENAME ) ):
+            self.config.readfp( open( os.path.expanduser( self.CONFIG_FILENAME ) ) )
+        else:
+            self.config.readfp( io.BytesIO(self.DEFAULT_CONFIG_CONTENT) )
+
+    def save_config(self):
+        import ConfigParser
+        self.config.write( open(os.path.expanduser( self.CONFIG_FILENAME ), "wt" ) )
 
     def window1_delete_event_cb(self, widget, event, data=None):
         self.act_quit.activate()
@@ -463,11 +493,20 @@ class MainWindow:
             print( e )
             return
         pref_dlg = builder.get_object("dialog1")
+        chooser_btn = builder.get_object("filechooserbutton1")
+        shelf_path=os.path.expanduser( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH) )
+        chooser_btn.set_current_folder( shelf_path )
+        chooser_btn.set_filename( shelf_path )
 
         result=pref_dlg.run()
-        print result
+        # OK
+        if result==0:
+            selected_path = chooser_btn.get_filename()
+            if selected_path:
+                self.config.set( self.SECTION, self.ENTRY_SHELF_PATH, selected_path )
+                self.save_config()
         pref_dlg.destroy()
-        
+
     def pdbindex_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
             dialog=gtk.MessageDialog(
