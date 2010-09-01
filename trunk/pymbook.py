@@ -494,9 +494,8 @@ class MainWindow:
             return
         pref_dlg = builder.get_object("dialog1")
         chooser_btn = builder.get_object("filechooserbutton1")
-        shelf_path=os.path.expanduser( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH) )
+        shelf_path=os.path.expanduser( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH) ).encode( sys.getfilesystemencoding() )
         chooser_btn.set_current_folder( shelf_path )
-        chooser_btn.set_filename( shelf_path )
 
         result=pref_dlg.run()
         # OK
