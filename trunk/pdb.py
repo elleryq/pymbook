@@ -45,9 +45,9 @@ class BaseOperation:
     def __init__( self ):
         self.empty_str = None
 
-    def parseBasicInformation( self, pdb, content ):
-        content[0:8]=[]
-        basic_inf=self.empty_str.join(content).split( chr(27) )
+    def parseBasicInformation( self, pdb, raw_text ):
+        raw_text[0:8]=[]
+        basic_inf=self.empty_str.join(raw_text).split( chr(27) )
         pdb.book_name = self.convert2unicode(basic_inf[0])
         pdb.chapters = self.extractChapters(basic_inf[3])
         pdb.contents = [ self.convert2unicode(s) for s in basic_inf[4:4+pdb.chapters] ]
@@ -71,15 +71,15 @@ class UnicodeOperation(BaseOperation):
         self.empty_str = u""
     
     def processString(self, raw_str):
-        content = []
+        converted_text = []
         i = 0
         while True:
             ch = [ ord(c) for c in raw_str[i:i+2] ]
             if not ch or (ch[0]==0 and ch[1]==0):
                 break
-            content.append( unichr( (ch[1]<<8) + ch[0] ))
+            converted_text.append( unichr( (ch[1]<<8) + ch[0] ))
             i+=2
-        return content
+        return converted_text
 
     def convert2unicode( self, str ):
         return str
@@ -101,12 +101,12 @@ class DblByteOperation( BaseOperation ):
         self.empty_str = ""
     
     def processString(self, raw_str):
-        content = []
+        converted_text = []
         for ch in raw_str:
             if ord(ch)==0:
                 break
-            content.append( ch )
-        return content
+            converted_text.append( ch )
+        return converted_text
 
     def convert2unicode( self, str ):
         result=""
@@ -165,8 +165,8 @@ class PDBFile:
 
     def __parseBasicInformation(self, file):
         file.seek( self.chapter_start_offsets[0], os.SEEK_SET )
-        content = self.operation.processString( file.read( self.chapter_end_offsets[0] - self.chapter_start_offsets[0] ) )
-        self.operation.parseBasicInformation( self, content )
+        raw_text = self.operation.processString( file.read( self.chapter_end_offsets[0] - self.chapter_start_offsets[0] ) )
+        self.operation.parseBasicInformation( self, raw_text )
 
     def parse( self ):
         """Must call parse() first to get PDB."""
@@ -183,7 +183,7 @@ class PDBFile:
 
     def chapter(self, num ):
         """Read specified chapters."""
-        content=""
+        text=""
         chap=num+1
         if chap>self.chapters:
             return ""
@@ -192,8 +192,9 @@ class PDBFile:
             f.seek( self.chapter_start_offsets[chap], os.SEEK_SET )
             count=self.chapter_end_offsets[chap]-self.chapter_start_offsets[chap] 
             raw_str = f.read( count )
-            content = self.operation.processString( raw_str )
-            result = self.operation.convert2unicode( self.empty_str.join(content) )
+            text = self.empty_str.join( 
+                    self.operation.processString( raw_str ) )
+            result = self.operation.convert2unicode( text )
         finally:
             f.close()
         return result
