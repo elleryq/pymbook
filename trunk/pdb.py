@@ -50,7 +50,7 @@ class BaseOperation:
         basic_inf=self.empty_str.join(content).split( chr(27) )
         pdb.book_name = self.convert2unicode(basic_inf[0])
         pdb.chapters = self.extractChapters(basic_inf[3])
-        pdb.chapter_titles = [ self.convert2unicode(s) for s in basic_inf[4:4+pdb.chapters] ]
+        pdb.contents = [ self.convert2unicode(s) for s in basic_inf[4:4+pdb.chapters] ]
     
     def processString(self, file):
         pass
@@ -123,16 +123,15 @@ class PDBFile:
     """
     The major class to read PDB file.
     """
-    records = 0
-    pdb_filename = ""
-    is_unicode = False
-    chapter_start_offsets = []
-    chapter_end_offsets = []
-    book_name = ""
-    chapter_titles = []
-    chapters = 0
-
     def __init__( self, pdb_filename ):
+		self.records = 0
+		self.pdb_filename = ""
+		self.is_unicode = False
+		self.chapter_start_offsets = []
+		self.chapter_end_offsets = []
+		self.book_name = ""
+		self.contents = []
+		self.chapters = 0
         self.pdb_filename = pdb_filename
 
     def __parseHeader( self, file ):
@@ -223,7 +222,7 @@ Usage: %s pdb_filename""" % sys.argv[0] )
         pdb = PDBFile( sys.argv[1] ).parse()
         print( "Book name: %s " % pdb.book_name.encode( encoding ) )
         print( "Total %d chapters." % pdb.chapters )
-        for chapter_title in pdb.chapter_titles:
+        for chapter_title in pdb.contents:
             print( chapter_title.encode(encoding) )
         print( pdb.chapter(5).encode(encoding) )
     except BaseException, e:

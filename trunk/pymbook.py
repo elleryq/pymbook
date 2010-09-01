@@ -185,7 +185,7 @@ class PDBIndex(PDBWidget):
         start_x = 1
         start_y = 0
         columns_in_page=len( self.x_pos_list )
-        for chapter_title in self.pdb.chapter_titles:
+        for chapter_title in self.pdb.contents:
             x = self.x_pos_list[ start_x ] + cell_width/4
             y = self.y_pos_list[ start_y ] + cell_height
             for c in chapter_title:
