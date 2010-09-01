@@ -115,13 +115,13 @@ class PDBWidget(gtk.DrawingArea):
             self.window.invalidate_rect(rect, True)
             self.window.process_updates(True)
 
-class PDBIndex(PDBWidget):
+class PDBContents(PDBWidget):
     __gsignals__ = dict(chapter_selected=(gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,
                                       (gobject.TYPE_INT,)))
 
     def __init__(self):
-        super(PDBIndex, self).__init__()
+        super(PDBContents, self).__init__()
         self.old_rect=None
         self.recalc=True
         self.pdb=None
@@ -383,19 +383,19 @@ class MainWindow:
         self.act_quit = self.builder.get_object("act_quit")
         self.notebook=self.builder.get_object("notebook1")
       
-        # Add index tab
-        self.pdb_index=PDBIndex()
+        # Add contents tab
+        self.pdb_index=PDBContents()
         self.pdb_index.set_size_request( 
                 self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         frame=gtk.Frame()
         frame.show()
         frame.add( self.pdb_index )
-        label = gtk.Label( _("Index") )
+        label = gtk.Label( _("Contents") )
         self.notebook.append_page( frame, label )
         self.pdb_index.show()
 
-        # Add content tab
+        # Add text tab
         self.pdb_canvas=PDBCanvas()
         frame=gtk.Frame()
         frame.set_size_request(
@@ -403,7 +403,7 @@ class MainWindow:
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         frame.show()
         frame.add(self.pdb_canvas)
-        label = gtk.Label(_("Content"))
+        label = gtk.Label(_("Text"))
         self.notebook.append_page(frame, label)
         self.pdb_canvas.show()
 
@@ -536,7 +536,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: Index paging.
+# TODO: Contents paging.
 # TODO: Shelf function.
 # TODO: configuration.
 
