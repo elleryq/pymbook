@@ -1,6 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Reference: http://www.haodoo.net/?M=hd&P=mPDB22#P
+"""
+Metadata-Version: 1.1
+Name: pdb
+Version: 0.1
+Platform: POSIX, Windows
+Summary: A module for read pdb files from http://www.haodoo.net
+Description: The specification is in http://www.haodoo.net/?M=hd&P=mPDB22#P
+             PDBFile is the implementation for reading pdb files.
+Keywords: pdb haodoo
+Home-page: http://code.google.com/p/pymbook/
+Authors: Yan-ren Tsai
+Author-email: "Yan-ren Tsai" <elleryq@gmail.com>
+License: GNU General Public License v3
+Requires: sys
+Requires: os
+Provides: PDBFile
+Provides: PDBException
+"""
 
 import sys
 import os
@@ -13,14 +30,18 @@ PDB_HEADER_BOOK_TYPE_LEN = 4
 PDB_CHAPTER_OFFSET = 78
 
 class PDBException(BaseException):
-    """The exception throwed by PDBFile."""
+    """
+    The exception throwed by PDBFile.
+    """
     def __init__(self, value ):
         self.value = value
     def __str__(self):
         return repr(self.value)
 
 class BaseOperation:
-    """Use template pattern to extract base operation.  The real implementation is in UnicodeOperation and DblByteOperation."""
+    """
+    Use template pattern to extract base operation.  The real implementation is in UnicodeOperation and DblByteOperation.
+    """
     def __init__( self ):
         pass
 
@@ -41,7 +62,9 @@ class BaseOperation:
         pass
 
 class UnicodeOperation( BaseOperation ):
-    """Handle mUpdb file."""
+    """
+    Handle updb(unicode pdb) file.
+    """
     empty_str = u""
     
     def __init__( self ):
@@ -69,7 +92,9 @@ class UnicodeOperation( BaseOperation ):
         return int( self.empty_str.join(tmp_list), 10 )
 
 class DblByteOperation( BaseOperation ):
-    """Handle double byte pdb file."""
+    """
+    Handle double byte pdb file.  For now, the pdb files provided by haodoo are encoded with cp950.
+    """
     empty_str = ""
     
     def __init__( self ):
@@ -95,7 +120,9 @@ class DblByteOperation( BaseOperation ):
         return int( self.empty_str.join(str), 10 )
  
 class PDBFile:
-    """The major class to read PDB file."""
+    """
+    The major class to read PDB file.
+    """
     records = 0
     pdb_filename = ""
     is_unicode = False
