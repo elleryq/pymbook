@@ -137,6 +137,27 @@ class PDBContents(PDBWidget):
     def set_pdb(self, pdb):
         self.pdb=pdb
 
+    def __pagination(self, columns_in_page ):
+        self.pages=[]
+        page_len = len(self.pdb.contents)/columns_in_page+1
+        for i in range(page_len):
+            self.pages.append( 
+                    self.pdb.contents[columns_in_page*i:columns_in_page*(i+1)])
+        self.current_page=0
+
+    def __go_previous(self):
+        self.current_page=self.current_page-1
+        if self.current_page<0:
+            self.current_page=0
+
+    def __go_next(self):
+        self.current_page=self.current_page+1
+        if self.current_page>=len(self.pages):
+            self.current_page=len(self.pages)-1
+
+    def __get_current_page(self):
+        return self.pages[self.current_page]
+
     def expose(self, widget, event):
         if not self.pdb:
             return False
@@ -160,7 +181,8 @@ class PDBContents(PDBWidget):
             self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
             self.y_pos_list=range(0, rect.height, (rect.height-1) )
             self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
-            columns_in_page=len( self.x_pos_list )
+            columns_in_page=len( self.x_pos_list )-1
+            self.__pagination(columns_in_page)
             self.old_rect=rect
             self.recalc=False
 
@@ -185,17 +207,21 @@ class PDBContents(PDBWidget):
         start_x = 1
         start_y = 0
         columns_in_page=len( self.x_pos_list )
-        for chapter_title in self.pdb.contents:
-            x = self.x_pos_list[ start_x ] + cell_width/4
-            y = self.y_pos_list[ start_y ] + cell_height
-            for c in chapter_title:
-                cx.move_to( x, y )
-                cx.show_text( c )
-                y=y+cell_height
-            start_x=start_x+1
-            if start_x>columns_in_page:
-                start_x=1
-                start_y=start_y+1
+        try:
+            for chapter_title in self.__get_current_page():
+                x = self.x_pos_list[ start_x ] + cell_width/4
+                y = self.y_pos_list[ start_y ] + cell_height
+                # TODO: consider if text is over height.
+                for c in chapter_title:
+                    cx.move_to( x, y )
+                    cx.show_text( c )
+                    y = y + cell_height
+                start_x = start_x + 1
+                if start_x>columns_in_page:
+                    start_x = 1
+        except IndexError, e:
+            print start_x, len(self.x_pos_list), columns_in_page, \
+    len(self.__get_current_page())
         cx.restore()
 
         return False
@@ -205,10 +231,9 @@ class PDBContents(PDBWidget):
             return False
 
         if event.direction==gtk.gdk.SCROLL_UP:
-            self.pager.go_previous()
+            self.__go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
-            self.pager.go_next()
-		#self.chapter=self.pager.get_current_chapter()
+            self.__go_next()
         self.redraw_canvas()
         return True
 
@@ -226,11 +251,16 @@ class PDBContents(PDBWidget):
         return False
 
     def which_chapter(self, x, y):
-        chapter=0
+        selected=0
         for r in self.regions:
             if r.point_in( int(x), int(y) ):
                 break
-            chapter=chapter+1
+            selected=selected+1
+        if self.current_page>0:
+            for page in self.pages[:self.current_page]:
+                print len(page)
+                selected = selected + len(page)
+        chapter = selected
         if chapter>=self.pdb.chapters:
             chapter=-1
         return chapter
