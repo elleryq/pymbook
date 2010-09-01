@@ -43,7 +43,7 @@ class BaseOperation:
     Use template pattern to extract base operation.  The real implementation is in UnicodeOperation and DblByteOperation.
     """
     def __init__( self ):
-        pass
+        self.empty_str = None
 
     def parseBasicInformation( self, pdb, content ):
         content[0:8]=[]
@@ -61,14 +61,14 @@ class BaseOperation:
     def extractChapters( self, str ):
         pass
 
-class UnicodeOperation( BaseOperation ):
+class UnicodeOperation(BaseOperation):
     """
     Handle updb(unicode pdb) file.
     """
-    empty_str = u""
     
     def __init__( self ):
-        pass
+        BaseOperation.__init__(self)
+        self.empty_str = u""
     
     def processString(self, raw_str):
         content = []
@@ -95,10 +95,10 @@ class DblByteOperation( BaseOperation ):
     """
     Handle double byte pdb file.  For now, the pdb files provided by haodoo are encoded with cp950.
     """
-    empty_str = ""
     
     def __init__( self ):
-        pass
+        BaseOperation.__init__(self)
+        self.empty_str = ""
     
     def processString(self, raw_str):
         content = []
@@ -172,14 +172,14 @@ class PDBFile:
     def parse( self ):
         """Must call parse() first to get PDB."""
         try:
-            file = open( self.pdb_filename, "rb" )
-            self.__parseHeader(file)
-            self.__parseChapterOffsets(file)
-            self.__parseBasicInformation(file)
+            f = open( self.pdb_filename, "rb" )
+            self.__parseHeader(f)
+            self.__parseChapterOffsets(f)
+            self.__parseBasicInformation(f)
         except PDBException, e:
             raise e
         finally:
-            file.close()
+            f.close()
         return self
 
     def chapter(self, num ):
@@ -189,14 +189,14 @@ class PDBFile:
         if chap>self.chapters:
             return ""
         try:
-            file = open( self.pdb_filename, "rb" )
-            file.seek( self.chapter_start_offsets[chap], os.SEEK_SET )
+            f = open( self.pdb_filename, "rb" )
+            f.seek( self.chapter_start_offsets[chap], os.SEEK_SET )
             count=self.chapter_end_offsets[chap]-self.chapter_start_offsets[chap] 
-            raw_str = file.read( count )
+            raw_str = f.read( count )
             content = self.operation.processString( raw_str )
             result = self.operation.convert2unicode( self.empty_str.join(content) )
         finally:
-            file.close()
+            f.close()
         return result
     
     def __str__(self):
