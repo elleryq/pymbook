@@ -102,6 +102,7 @@ class PDBWidget(gtk.DrawingArea):
 
     def __init__(self):
         super(PDBWidget, self).__init__()
+        self.set_flags( gtk.CAN_FOCUS )
 
     def set_font(self, font):
         t=font.split(' ')
@@ -126,13 +127,16 @@ class PDBContents(PDBWidget):
         self.recalc=True
         self.pdb=None
 
+        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
+                        gtk.gdk.BUTTON_RELEASE_MASK | 
+                        gtk.gdk.POINTER_MOTION_MASK |
+                        gtk.gdk.KEY_PRESS_MASK )
+
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
-        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
-                        gtk.gdk.BUTTON_RELEASE_MASK | 
-                        gtk.gdk.POINTER_MOTION_MASK )
+        self.connect("key-release-event", self.key_release )
 
     def set_pdb(self, pdb):
         self.pdb=pdb
@@ -250,6 +254,20 @@ class PDBContents(PDBWidget):
         #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
         return False
 
+    def key_release(self, widget, event ):
+        if not self.pdb:
+            return False
+        if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
+            self.__go_previous()
+        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
+            self.__go_next()
+        elif event.keyval==gtk.gdk.keyval_from_name("Up"):
+            self.__go_previous()
+        elif event.keyval==gtk.gdk.keyval_from_name("Down"):
+            self.__go_next()
+        self.redraw_canvas()
+        return False
+
     def which_chapter(self, x, y):
         selected=0
         for r in self.regions:
@@ -258,7 +276,6 @@ class PDBContents(PDBWidget):
             selected=selected+1
         if self.current_page>0:
             for page in self.pages[:self.current_page]:
-                print len(page)
                 selected = selected + len(page)
         chapter = selected
         if chapter>=self.pdb.chapters:
@@ -274,10 +291,12 @@ class PDBCanvas(PDBWidget):
         self.pdb=None
         self.chapter=0
 
-        self.set_events(gtk.gdk.SCROLL_MASK)
+        self.add_events(gtk.gdk.SCROLL_MASK |
+                        gtk.gdk.KEY_PRESS_MASK )
 
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
+        self.connect("key-release-event", self.key_release )
 
     def set_pdb(self, pdb):
         self.pdb=pdb
@@ -373,6 +392,20 @@ class PDBCanvas(PDBWidget):
         self.chapter=self.pager.get_current_chapter()
         self.redraw_canvas()
         return True
+
+    def key_release(self, widget, event ):
+        if not self.pdb:
+            return False
+        if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
+            self.__go_previous()
+        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
+            self.__go_next()
+        elif event.keyval==gtk.gdk.keyval_from_name("Up"):
+            self.__go_previous()
+        elif event.keyval==gtk.gdk.keyval_from_name("Down"):
+            self.__go_next()
+        self.redraw_canvas()
+        return False
 
 class MainWindow:
     DEFAULT_WIDTH = 640
@@ -575,7 +608,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: Contents paging.
 # TODO: Shelf function.
-# TODO: configuration.
 # TODO: Add key handling.
