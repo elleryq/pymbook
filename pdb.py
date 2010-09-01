@@ -124,14 +124,14 @@ class PDBFile:
     The major class to read PDB file.
     """
     def __init__( self, pdb_filename ):
-		self.records = 0
-		self.pdb_filename = ""
-		self.is_unicode = False
-		self.chapter_start_offsets = []
-		self.chapter_end_offsets = []
-		self.book_name = ""
-		self.contents = []
-		self.chapters = 0
+        self.records = 0
+        self.pdb_filename = ""
+        self.is_unicode = False
+        self.chapter_start_offsets = []
+        self.chapter_end_offsets = []
+        self.book_name = ""
+        self.contents = []
+        self.chapters = 0
         self.pdb_filename = pdb_filename
 
     def __parseHeader( self, file ):
