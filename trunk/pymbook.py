@@ -340,17 +340,17 @@ class PDBCanvas(PDBWidget):
 
 class MainWindow:
     def __init__(self):
-        self.pdb=None
-        self.pdb_filename=None
-        self.font_name='文泉驛微米黑'
-        self.font_size=16
+        self.pdb = None
+        self.pdb_filename = None
+        self.font_name = '文泉驛微米黑'
+        self.font_size = 16
+        self.pref_dlg = None
     	self.initialize_component()
 
     def initialize_component(self):
     	try:
     		self.builder = gtk.Builder()
-    		ui_filename = "main_window.glade"
-    		self.builder.add_from_file( ui_filename )
+    		self.builder.add_from_file( "main_window.glade" )
     	except Exception, e:
             err_dialog = gtk.MessageDialog(
                     self.window, 
@@ -364,8 +364,8 @@ class MainWindow:
     	self.window = self.builder.get_object("window1")
         self.window.set_title( APP )
         self.window.set_position( gtk.WIN_POS_CENTER )
-        self.act_quit = self.builder.get_object("act_quit")
 
+        self.act_quit = self.builder.get_object("act_quit")
         self.notebook=self.builder.get_object("notebook1")
       
         # Add index tab
@@ -455,6 +455,19 @@ class MainWindow:
     def act_index_activate_cb(self, b):
         self.notebook.set_current_page(INDEX_TAB)
 
+    def act_preference_activate_cb(self, b):
+        try:
+            builder = gtk.Builder()
+            pref_dlg = builder.add_from_file( "preference_dialog.glade" )
+        except Exception, e:
+            print( e )
+            return
+        pref_dlg = builder.get_object("dialog1")
+
+        result=pref_dlg.run()
+        print result
+        pref_dlg.destroy()
+        
     def pdbindex_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
             dialog=gtk.MessageDialog(
