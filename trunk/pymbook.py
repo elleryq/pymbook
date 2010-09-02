@@ -215,11 +215,12 @@ class PDBContents(PDBWidget):
             for chapter_title in self.__get_current_page():
                 x = self.x_pos_list[ start_x ] + cell_width/4
                 y = self.y_pos_list[ start_y ] + cell_height
-                # TODO: consider if text is over height.
                 for c in chapter_title:
                     cx.move_to( x, y )
                     cx.show_text( c )
                     y = y + cell_height
+                    if y>self.y_pos_list[ -1 ]:
+                        break
                 start_x = start_x + 1
                 if start_x>columns_in_page:
                     start_x = 1
