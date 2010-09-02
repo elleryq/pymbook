@@ -14,6 +14,7 @@ import cairo
 
 from pymbooklib import pdb
 from pymbooklib.version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
+from pymbooklib.pdbwidget import PDBWidget
 
 DIR="/usr/share/locale"
 
@@ -92,27 +93,6 @@ class TextPager:
         self.current=self.current+1
         if self.current>=len(self.pages):
             self.current=len(self.pages)-1
-
-class PDBWidget(gtk.DrawingArea):
-    font_name = '文泉驛微米黑'
-    font_size = 16
-    pdb = None
-
-    def __init__(self):
-        super(PDBWidget, self).__init__()
-        self.set_flags( gtk.CAN_FOCUS )
-
-    def set_font(self, font):
-        t=font.split(' ')
-        self.font_name = t[0]
-        self.font_size = int(t[-1])
-
-    def redraw_canvas(self):
-        if self.window:
-            alloc=self.get_allocation()
-            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-            self.window.invalidate_rect(rect, True)
-            self.window.process_updates(True)
 
 class PDBContents(PDBWidget):
     __gsignals__ = dict(chapter_selected=(gobject.SIGNAL_RUN_FIRST,
@@ -627,4 +607,3 @@ if __name__ == "__main__":
     main()
 
 # TODO: Shelf function.
-# TODO: Add key handling.
