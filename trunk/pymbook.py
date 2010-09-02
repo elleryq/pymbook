@@ -571,7 +571,7 @@ class MainWindow:
 
         result=pref_dlg.run()
         # OK
-        if result==0:
+        if result==gtk.RESPONSE_OK:
             selected_path = chooser_btn.get_filename()
             if selected_path:
                 self.config.set( self.SECTION, self.ENTRY_SHELF_PATH, selected_path )
