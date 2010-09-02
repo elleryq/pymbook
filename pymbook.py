@@ -408,28 +408,34 @@ class PDBCanvas(PDBWidget):
         return False
 
 class MainWindow:
-    DEFAULT_WIDTH = 640
-    DEFAULT_HEIGHT = 480
-    DEFAULT_SHELF_PATH = "~/download/"
     ENTRY_SHELF_PATH = "bookshelf_path"
     ENTRY_WIDTH = "width"
     ENTRY_HEIGHT = "height"
+    ENTRY_FONT_NAME = "font_name"
+    ENTRY_FONT_SIZE = "font_size"
+    DEFAULT_FONT_NAME = "文泉驛微米黑"
+    DEFAULT_FONT_SIZE = 16
+    DEFAULT_WIDTH = 640
+    DEFAULT_HEIGHT = 480
+    DEFAULT_SHELF_PATH = "~/download/"
     DEFAULT_CONFIG_CONTENT = """
 [mbook]
 %s = %s
 %s = %d
 %s = %d
+%s = %s
+%s = %d
 """ % ( ENTRY_SHELF_PATH, DEFAULT_SHELF_PATH, 
         ENTRY_WIDTH, DEFAULT_WIDTH, 
-        ENTRY_HEIGHT, DEFAULT_HEIGHT )
+        ENTRY_HEIGHT, DEFAULT_HEIGHT,
+        ENTRY_FONT_NAME, DEFAULT_FONT_NAME,
+        ENTRY_FONT_SIZE, DEFAULT_FONT_SIZE )
     CONFIG_FILENAME = "~/.config/pymbook.conf"
     SECTION = 'mbook'
 
     def __init__(self):
         self.pdb = None
         self.pdb_filename = None
-        self.font_name = '文泉驛微米黑'
-        self.font_size = 16
         self.pref_dlg = None
         self.load_config()
     	self.initialize_component()
@@ -454,12 +460,17 @@ class MainWindow:
 
         self.act_quit = self.builder.get_object("act_quit")
         self.notebook=self.builder.get_object("notebook1")
-      
+
+        font = "%s %d" % ( 
+                self.config.get( self.SECTION, self.ENTRY_FONT_NAME ),
+                self.config.getint( self.SECTION, self.ENTRY_FONT_SIZE ) )
+
         # Add contents tab
         self.pdb_index=PDBContents()
         self.pdb_index.set_size_request( 
                 self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
+        self.pdb_index.set_font( font )
         frame=gtk.Frame()
         frame.show()
         frame.add( self.pdb_index )
@@ -473,6 +484,7 @@ class MainWindow:
         frame.set_size_request(
                 self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
+        self.pdb_canvas.set_font( font )
         frame.show()
         frame.add(self.pdb_canvas)
         label = gtk.Label(_("Text"))
@@ -542,14 +554,18 @@ class MainWindow:
     def act_font_activate_cb(self, b):
         dialog=gtk.FontSelectionDialog(_("Choose font"))
         dialog.set_default_response(gtk.RESPONSE_OK)
-        dialog.set_font_name( "%s %d" % (self.font_name, self.font_size) )
+        dialog.set_font_name( "%s %d" % (
+                self.config.get( self.SECTION, self.ENTRY_FONT_NAME ),
+                self.config.getint( self.SECTION, self.ENTRY_FONT_SIZE ) ) )
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
-            self.font_name=dialog.get_font_name()
-            self.pdb_index.set_font(self.font_name)
-            self.pdb_canvas.set_font(self.font_name)
-        elif response==gtk.RESPONSE_CANCEL:
-            pass
+            font_name=dialog.get_font_name()
+            self.pdb_index.set_font( font_name )
+            self.pdb_canvas.set_font( font_name )
+            font = font_name.split()
+            self.config.set( self.SECTION, self.ENTRY_FONT_NAME, font[0] )
+            self.config.set( self.SECTION, self.ENTRY_FONT_SIZE, font[-1] )
+            self.save_config()
         dialog.destroy()
         self.pdb_index.redraw_canvas()
         self.pdb_canvas.redraw_canvas()
