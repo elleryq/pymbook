@@ -205,6 +205,9 @@ class BookshelfWidget(gtk.DrawingArea):
             book = -1
         return book
 
+    def get_book( self, idx ):
+        return self.books[ idx ]
+
 if __name__ == "__main__":
     print __find_pdbs( "" )
 

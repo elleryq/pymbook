@@ -20,8 +20,8 @@ from pymbooklib.bookshelf import BookshelfWidget, find_pdbs
 DIR="/usr/share/locale"
 
 SHELF_TAB = 0
-INDEX_TAB = 1
-CONTENT_TAB = 2
+CONTENT_TAB = 1
+CONTEXT_TAB = 2
 
 def tr( s ):
     return s
@@ -110,17 +110,17 @@ class MainWindow:
         self.bookshelf.show()
 
         # Add contents tab
-        self.pdb_index=PDBContents()
-        self.pdb_index.set_size_request( 
+        self.pdb_contents=PDBContents()
+        self.pdb_contents.set_size_request( 
                 self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
-        self.pdb_index.set_font( font )
+        self.pdb_contents.set_font( font )
         frame=gtk.Frame()
         frame.show()
-        frame.add( self.pdb_index )
+        frame.add( self.pdb_contents )
         label = gtk.Label( _("Contents") )
         self.notebook.append_page( frame, label )
-        self.pdb_index.show()
+        self.pdb_contents.show()
 
         # Add text tab
         self.pdb_canvas=PDBCanvas()
@@ -136,7 +136,8 @@ class MainWindow:
         self.pdb_canvas.show()
 
         # connect signals
-        self.pdb_index.connect("chapter_selected", self.pdbindex_chapter_selected_cb)
+        self.bookshelf.connect("book_selected", self.bookshelf_book_selected_cb )
+        self.pdb_contents.connect("chapter_selected", self.pdb_contents_chapter_selected_cb)
     	self.builder.connect_signals(self)
     	self.window.show()
 
@@ -187,11 +188,11 @@ class MainWindow:
         if response==gtk.RESPONSE_OK:
             self.pdb_filename=dialog.get_filename()
             self.pdb=pdb.PDBFile(self.pdb_filename).parse()
-            self.pdb_index.set_pdb( self.pdb )
-            self.pdb_index.redraw_canvas()
+            self.pdb_contents.set_pdb( self.pdb )
+            self.pdb_contents.redraw_canvas()
             self.pdb_canvas.set_pdb( self.pdb )
             self.pdb_canvas.redraw_canvas()
-            self.notebook.set_current_page(INDEX_TAB)
+            self.notebook.set_current_page(CONTENT_TAB)
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()
@@ -205,18 +206,18 @@ class MainWindow:
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
             font_name=dialog.get_font_name()
-            self.pdb_index.set_font( font_name )
+            self.pdb_contents.set_font( font_name )
             self.pdb_canvas.set_font( font_name )
             font = font_name.split()
             self.config.set( self.SECTION, self.ENTRY_FONT_NAME, font[0] )
             self.config.set( self.SECTION, self.ENTRY_FONT_SIZE, font[-1] )
             self.save_config()
         dialog.destroy()
-        self.pdb_index.redraw_canvas()
+        self.pdb_contents.redraw_canvas()
         self.pdb_canvas.redraw_canvas()
 
     def act_index_activate_cb(self, b):
-        self.notebook.set_current_page(INDEX_TAB)
+        self.notebook.set_current_page(CONTENT_TAB)
 
     def act_preference_activate_cb(self, b):
         try:
@@ -239,7 +240,7 @@ class MainWindow:
                 self.save_config()
         pref_dlg.destroy()
 
-    def pdbindex_chapter_selected_cb(self, widget, chapter):
+    def pdb_contents_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
             dialog=gtk.MessageDialog(
                     self.window, 
@@ -250,9 +251,28 @@ class MainWindow:
             result = dialog.run()
             dialog.destroy()
             return
-        self.notebook.set_current_page(CONTENT_TAB)
+        self.notebook.set_current_page(CONTEXT_TAB)
         self.pdb_canvas.set_chapter(chapter)
         self.pdb_canvas.redraw_canvas()
+
+    def bookshelf_book_selected_cb(self, widget, book):
+        if book==-1:
+            dialog=gtk.MessageDialog(
+                    self.window, 
+                    gtk.DIALOG_MODAL, 
+                    gtk.MESSAGE_ERROR, 
+                    gtk.BUTTONS_CLOSE, 
+                    _("No such book."))
+            result = dialog.run()
+            dialog.destroy()
+            return
+
+        book_name, pdb_filename = self.bookshelf.get_book(book) 
+        self.pdb=pdb.PDBFile(pdb_filename).parse()
+        self.pdb_contents.set_pdb( self.pdb )
+        self.pdb_contents.redraw_canvas()
+        self.pdb_canvas.set_pdb( self.pdb )
+        self.notebook.set_current_page(CONTENT_TAB)
 
 def main():
     window=MainWindow()
@@ -261,4 +281,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: Shelf function.
