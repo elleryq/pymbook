@@ -51,7 +51,6 @@ class BaseOperation:
         pdb.book_name = self.convert2unicode(basic_inf[0])
         pdb.chapters = self.extractChapters(basic_inf[3])
         pdb.contents = self.extractContents( basic_inf[4:4+pdb.chapters ] )
-        print len(pdb.contents)
     
     def processString(self, file):
         pass
