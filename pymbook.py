@@ -205,6 +205,9 @@ class PDBContents(PDBWidget):
             cx.stroke()
             cx.restore()
 
+        # Show contents
+        # TODO: Show book name.
+        # TODO: Indicate previous/next pages.
         cx.save()
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
