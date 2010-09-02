@@ -20,4 +20,5 @@
 
 APP_NAME = 'pymbook'
 APP_VERSION = '0.1'
-
+APP_COMMENT = ''
+APP_AUTHORS = ['Yan-ren Tsai']

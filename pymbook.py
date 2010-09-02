@@ -13,11 +13,9 @@ import math
 import cairo
 
 from pymbooklib import pdb
+from pymbooklib.version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
 
-APP="pymbook"
 DIR="/usr/share/locale"
-VERSION="0.1"
-COMMENT=""
 
 INDEX_TAB=0
 CONTENT_TAB=1
@@ -26,12 +24,12 @@ def tr( s ):
     return s
 
 locale.setlocale( locale.LC_ALL, '' )
-locale.bindtextdomain( APP, DIR )
-gettext.bindtextdomain( APP, DIR )
-locale.textdomain( APP )
+locale.bindtextdomain( APP_NAME, DIR )
+gettext.bindtextdomain( APP_NAME, DIR )
+locale.textdomain( APP_NAME )
 try:
-    lang=gettext.translation( APP, DIR )
-    lang.install( APP, DIR )
+    lang=gettext.translation( APP_NAME, DIR )
+    lang.install( APP_NAME, DIR )
     _=lang.gettext
 except:
     # fallback
@@ -459,7 +457,7 @@ class MainWindow:
             err_dialog.destroy()
             return
     	self.window = self.builder.get_object("window1")
-        self.window.set_title( APP )
+        self.window.set_title( APP_NAME )
         self.window.set_position( gtk.WIN_POS_CENTER )
 
         self.act_quit = self.builder.get_object("act_quit")
@@ -521,10 +519,10 @@ class MainWindow:
     
     def act_about_activate_cb(self, b):
         dialog=gtk.AboutDialog()
-        dialog.set_name( APP )
-        dialog.set_version( VERSION )
-        dialog.set_authors( ['Yan-ren Tsai'] )
-        dialog.set_comments( COMMENT )
+        dialog.set_name( APP_NAME )
+        dialog.set_version( APP_VERSION )
+        dialog.set_authors( APP_AUTHORS )
+        dialog.set_comments( APP_COMMENT )
         dialog.set_license( _("Distributed under the GPL3.") )
         dialog.run()
         dialog.destroy()
