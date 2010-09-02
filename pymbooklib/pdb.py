@@ -50,7 +50,8 @@ class BaseOperation:
         basic_inf=self.empty_str.join(raw_text).split( chr(27) )
         pdb.book_name = self.convert2unicode(basic_inf[0])
         pdb.chapters = self.extractChapters(basic_inf[3])
-        pdb.contents = [ self.convert2unicode(s) for s in basic_inf[4:4+pdb.chapters] ]
+        pdb.contents = self.extractContents( basic_inf[4:4+pdb.chapters ] )
+        print len(pdb.contents)
     
     def processString(self, file):
         pass
@@ -59,6 +60,9 @@ class BaseOperation:
         pass
 
     def extractChapters( self, str ):
+        pass
+
+    def extractContents( self, raw_list ):
         pass
 
 class UnicodeOperation(BaseOperation):
@@ -91,6 +95,11 @@ class UnicodeOperation(BaseOperation):
         tmp_list.append( chr( i>>8 ) )
         return int( self.empty_str.join(tmp_list), 10 )
 
+    def extractContents( self, raw_list ):
+        # workaround: len(raw_list) is 1, but we expect more.
+        # So we split it ourself.
+        return self.empty_str.join(raw_list).split( u"\r\n" )
+
 class DblByteOperation( BaseOperation ):
     """
     Handle double byte pdb file.  For now, the pdb files provided by haodoo are encoded with cp950.
@@ -118,7 +127,10 @@ class DblByteOperation( BaseOperation ):
 
     def extractChapters( self, str ):
         return int( self.empty_str.join(str), 10 )
- 
+
+    def extractContents( self, raw_list ):
+        return [ self.convert2unicode(s) for s in raw_list ]
+
 class PDBFile:
     """
     The major class to read PDB file.
