@@ -15,11 +15,13 @@ from pymbooklib.version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
 from pymbooklib.pdbwidget import PDBWidget
 from pymbooklib.pdbcontents import PDBContents
 from pymbooklib.pdbcanvas import PDBCanvas
+from pymbooklib.bookshelf import BookshelfWidget, find_pdbs
 
 DIR="/usr/share/locale"
 
-INDEX_TAB=0
-CONTENT_TAB=1
+SHELF_TAB = 0
+INDEX_TAB = 1
+CONTENT_TAB = 2
 
 def tr( s ):
     return s
@@ -93,6 +95,19 @@ class MainWindow:
         font = "%s %d" % ( 
                 self.config.get( self.SECTION, self.ENTRY_FONT_NAME ),
                 self.config.getint( self.SECTION, self.ENTRY_FONT_SIZE ) )
+
+        # Add bookshelf tab
+        self.bookshelf = BookshelfWidget( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH ) )
+        self.bookshelf.set_size_request(
+                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
+                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
+        self.bookshelf.set_font( font )
+        frame=gtk.Frame()
+        frame.show()
+        frame.add( self.bookshelf )
+        label = gtk.Label( _("Bookshelf") )
+        self.notebook.append_page( frame, label )
+        self.bookshelf.show()
 
         # Add contents tab
         self.pdb_index=PDBContents()
