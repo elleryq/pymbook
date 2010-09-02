@@ -12,7 +12,7 @@ import gobject
 import math
 import cairo
 
-import pdb
+from pymbooklib import pdb
 
 APP="pymbook"
 DIR="/usr/share/locale"
