@@ -9,8 +9,6 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
-import math
-import cairo
 
 from pymbooklib import pdb
 from pymbooklib.version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
@@ -178,6 +176,7 @@ class MainWindow:
             self.pdb_index.redraw_canvas()
             self.pdb_canvas.set_pdb( self.pdb )
             self.pdb_canvas.redraw_canvas()
+            self.notebook.set_current_page(INDEX_TAB)
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()

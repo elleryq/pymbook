@@ -46,6 +46,7 @@ class PDBContents(PDBWidget):
 
     def set_pdb(self, pdb):
         self.pdb=pdb
+        self.recalc=True
 
     def __pagination(self, columns_in_page ):
         self.pages=[]

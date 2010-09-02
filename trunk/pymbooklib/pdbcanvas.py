@@ -100,6 +100,7 @@ class PDBCanvas(PDBWidget):
         self.pdb=pdb
         self.page=0
         self.chapter=0
+        self.recalc=True
 
     def set_chapter(self, chapter):
         self.chapter=chapter
