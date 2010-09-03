@@ -3,7 +3,6 @@
 
 import sys
 import os
-import locale, gettext
 
 import pygtk
 pygtk.require('2.0')
@@ -16,27 +15,11 @@ from pymbooklib.pdbwidget import PDBWidget
 from pymbooklib.pdbcontents import PDBContents
 from pymbooklib.pdbcanvas import PDBCanvas
 from pymbooklib.bookshelf import BookshelfWidget, find_pdbs
-
-DIR="/usr/share/locale"
+from pymbooklib.translation import _
 
 SHELF_TAB = 0
 CONTENT_TAB = 1
 CONTEXT_TAB = 2
-
-def tr( s ):
-    return s
-
-locale.setlocale( locale.LC_ALL, '' )
-locale.bindtextdomain( APP_NAME, DIR )
-gettext.bindtextdomain( APP_NAME, DIR )
-locale.textdomain( APP_NAME )
-try:
-    lang=gettext.translation( APP_NAME, DIR )
-    lang.install( APP_NAME, DIR )
-    _=lang.gettext
-except:
-    # fallback
-    _=tr
 
 class MainWindow:
     ENTRY_SHELF_PATH = "bookshelf_path"
