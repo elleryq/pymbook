@@ -117,8 +117,9 @@ class DblByteOperation( BaseOperation ):
     def convert2unicode( self, str ):
         result=""
         try:
-            result=unicode( str, "cp950" )
+            result=unicode( str, "cp950", errors='ignore' )
         except UnicodeDecodeError, e:
+            #print map( lambda c: "%x" % ord(c), str )
             raise e
         return result
 
@@ -192,8 +193,8 @@ class PDBFile:
 
     def chapter(self, num ):
         """Read specified chapters."""
-        text=""
-        chap=num+1
+        result = ""
+        chap = num + 1
         if chap>self.chapters:
             return ""
         try:
