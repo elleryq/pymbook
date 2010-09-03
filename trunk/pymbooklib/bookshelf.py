@@ -41,7 +41,6 @@ class BookshelfWidget(gtk.DrawingArea):
     def __init__( self, shelf_path ):
         super(BookshelfWidget, self).__init__()
         self.books = find_pdbs( shelf_path )
-        print self.books
         self.old_rect=None
         self.recalc=True
 
