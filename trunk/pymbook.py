@@ -197,11 +197,11 @@ class MainWindow:
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK) )
         dialog.set_default_response(gtk.RESPONSE_OK)
 
-        filter=gtk.FileFilter()
-        filter.set_name(_("PDB/uPDB files"))
-        filter.add_pattern("*.pdb")
-        filter.add_pattern("*.updb")
-        dialog.add_filter(filter)
+        _filter=gtk.FileFilter()
+        _filter.set_name(_("PDB/uPDB files"))
+        _filter.add_pattern("*.pdb")
+        _filter.add_pattern("*.updb")
+        dialog.add_filter(_filter)
     
         response=dialog.run()
         if response==gtk.RESPONSE_OK:

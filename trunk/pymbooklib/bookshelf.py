@@ -81,6 +81,13 @@ class BookshelfWidget(gtk.DrawingArea):
     def __get_current_page(self):
         return self.pages[self.current_page]
 
+    def redraw_canvas(self):
+        if self.window:
+            alloc=self.get_allocation()
+            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
+            self.window.invalidate_rect(rect, True)
+            self.window.process_updates(True)
+
     def expose(self, widget, event):
         if not self.books:
             return False

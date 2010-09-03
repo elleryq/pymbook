@@ -195,13 +195,13 @@ class PDBCanvas(PDBWidget):
         if not self.pdb:
             return False
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
-            self.__go_previous()
+            self.pager.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
-            self.__go_next()
+            self.pager.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
-            self.__go_previous()
+            self.pager.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
-            self.__go_next()
+            self.pager.go_next()
         self.redraw_canvas()
         return False
 
