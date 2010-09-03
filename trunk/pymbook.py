@@ -170,6 +170,7 @@ class MainWindow:
             result = dialog.run()
             dialog.destroy()
             return False
+        self.window.set_title( "%s - %s" % ( APP_NAME, self.pdb.book_name ) )
         return True
 
     def window1_delete_event_cb(self, widget, event, data=None):
