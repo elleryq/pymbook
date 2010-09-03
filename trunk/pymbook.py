@@ -257,7 +257,6 @@ class MainWindow:
 
     def act_shelf_activate_cb( self, b ):
         self.notebook.set_current_page(SHELF_TAB)
-        print "clicked"
 
     def pdb_contents_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
