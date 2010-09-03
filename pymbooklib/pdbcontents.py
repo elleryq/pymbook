@@ -135,6 +135,7 @@ class PDBContents(PDBWidget):
                 if start_x>columns_in_page:
                     start_x = 1
         except IndexError, e:
+            print e
             print start_x, len(self.x_pos_list), columns_in_page, \
     len(self.__get_current_page())
         cx.restore()
