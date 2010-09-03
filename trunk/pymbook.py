@@ -75,7 +75,7 @@ class MainWindow:
     	try:
     		self.builder = gtk.Builder()
     		self.builder.add_from_file( "main_window.glade" )
-    	except Exception, e:
+    	except BaseException, e:
             err_dialog = gtk.MessageDialog(
                     self.window, 
                     gtk.DIALOG_MODAL, 
@@ -161,7 +161,7 @@ class MainWindow:
             self.pdb_contents.redraw_canvas()
             self.pdb_canvas.set_pdb( self.pdb )
             self.pdb_canvas.redraw_canvas()
-        except Exception, ex:
+        except BaseException, ex:
             dialog=gtk.MessageDialog(
                     self.window, 
                     gtk.DIALOG_MODAL, 
@@ -238,7 +238,7 @@ class MainWindow:
         try:
             builder = gtk.Builder()
             pref_dlg = builder.add_from_file( "preference_dialog.glade" )
-        except Exception, e:
+        except BaseException, e:
             print( e )
             return
         pref_dlg = builder.get_object("dialog1")
