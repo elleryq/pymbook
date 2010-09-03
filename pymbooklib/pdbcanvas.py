@@ -97,10 +97,9 @@ class PDBCanvas(PDBWidget):
         self.connect("key-release-event", self.key_release )
 
     def set_pdb(self, pdb):
-        self.pdb=pdb
+        super(PDBCanvas, self).set_pdb( pdb )
         self.page=0
         self.chapter=0
-        self.recalc=True
 
     def set_chapter(self, chapter):
         self.chapter=chapter

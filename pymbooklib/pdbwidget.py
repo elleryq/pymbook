@@ -23,16 +23,21 @@ import gtk
 class PDBWidget(gtk.DrawingArea):
     font_name = '¤å¬uÅæ·L¦Ì¶Â'
     font_size = 16
-    pdb = None
 
     def __init__(self):
         super(PDBWidget, self).__init__()
         self.set_flags( gtk.CAN_FOCUS )
+        self.pdb = None
 
     def set_font(self, font):
         t=font.split(' ')
         self.font_name = t[0]
         self.font_size = int(t[-1])
+        self.recalc = True
+
+    def set_pdb(self, pdb):
+        self.pdb = pdb
+        self.recalc = True
 
     def redraw_canvas(self):
         if self.window:

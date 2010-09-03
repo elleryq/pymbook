@@ -45,8 +45,8 @@ class PDBContents(PDBWidget):
         self.connect("key-release-event", self.key_release )
 
     def set_pdb(self, pdb):
-        self.pdb=pdb
-        self.recalc=True
+        super(PDBContents, self).set_pdb( pdb )
+        self.current_page = 0
 
     def __pagination(self, columns_in_page ):
         self.pages=[]
