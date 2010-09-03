@@ -31,7 +31,7 @@ def find_pdbs( path ):
     import os
     pdbfiles = glob.glob( os.path.join( path, "*.pdb" ) ) + glob.glob( os.path.join( path, "*.updb" ) )
     books = [ ( PDBFile( pdb_filename ).parse().book_name, pdb_filename ) for pdb_filename in pdbfiles ]
-    return books
+    return sorted( books )
 
 class BookshelfWidget(gtk.DrawingArea):
     __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
