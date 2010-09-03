@@ -222,19 +222,23 @@ if __name__ == "__main__":
     loc = locale.getdefaultlocale()
     if loc[1]:
         encoding = loc[1]
-        
-    if len(sys.argv)<2:
-        print( """Need 1 arguments.
-Usage: %s pdb_filename""" % sys.argv[0] )
+    
+    argc = len( sys.argv )
+    chapter = 0
+    if argc<2:
+        print( """Need at least 1 argument.
+Usage: %s pdb_filename [chapter]""" % sys.argv[0] )
         sys.exit(-1)
-
+    elif argc==3:
+        chapter=int(sys.argv[2])
+    
     try:
         pdb = PDBFile( sys.argv[1] ).parse()
         print( "Book name: %s " % pdb.book_name.encode( encoding ) )
         print( "Total %d chapters." % pdb.chapters )
         for chapter_title in pdb.contents:
             print( chapter_title.encode(encoding) )
-        print( pdb.chapter(5).encode(encoding) )
+        print( pdb.chapter( chapter ).encode(encoding) )
     except BaseException, e:
         print e
 
