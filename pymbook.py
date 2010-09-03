@@ -154,6 +154,25 @@ class MainWindow:
         import ConfigParser
         self.config.write( open(os.path.expanduser( self.CONFIG_FILENAME ), "wt" ) )
 
+    def open_pdb( self, pdb_filename ):
+        try:
+            self.pdb=pdb.PDBFile(pdb_filename).parse()
+            self.pdb_contents.set_pdb( self.pdb )
+            self.pdb_contents.redraw_canvas()
+            self.pdb_canvas.set_pdb( self.pdb )
+            self.pdb_canvas.redraw_canvas()
+        except Exception, ex:
+            dialog=gtk.MessageDialog(
+                    self.window, 
+                    gtk.DIALOG_MODAL, 
+                    gtk.MESSAGE_ERROR, 
+                    gtk.BUTTONS_CLOSE, 
+                    _("Cannot open specified pdb."))
+            result = dialog.run()
+            dialog.destroy()
+            return False
+        return True
+
     def window1_delete_event_cb(self, widget, event, data=None):
         self.act_quit.activate()
 
@@ -187,12 +206,8 @@ class MainWindow:
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
             self.pdb_filename=dialog.get_filename()
-            self.pdb=pdb.PDBFile(self.pdb_filename).parse()
-            self.pdb_contents.set_pdb( self.pdb )
-            self.pdb_contents.redraw_canvas()
-            self.pdb_canvas.set_pdb( self.pdb )
-            self.pdb_canvas.redraw_canvas()
-            self.notebook.set_current_page(CONTENT_TAB)
+            if self.open_pdb( self.pdb_filename ):
+                self.notebook.set_current_page(CONTENT_TAB)
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()
@@ -240,6 +255,10 @@ class MainWindow:
                 self.save_config()
         pref_dlg.destroy()
 
+    def act_shelf_activate_cb( self, b ):
+        self.notebook.set_current_page(SHELF_TAB)
+        print "clicked"
+
     def pdb_contents_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
             dialog=gtk.MessageDialog(
@@ -268,11 +287,9 @@ class MainWindow:
             return
 
         book_name, pdb_filename = self.bookshelf.get_book(book) 
-        self.pdb=pdb.PDBFile(pdb_filename).parse()
-        self.pdb_contents.set_pdb( self.pdb )
-        self.pdb_contents.redraw_canvas()
-        self.pdb_canvas.set_pdb( self.pdb )
-        self.notebook.set_current_page(CONTENT_TAB)
+        if self.open_pdb( pdb_filename ):
+            self.pdb_filename = pdb_filename
+            self.notebook.set_current_page(CONTENT_TAB)
 
 def main():
     window=MainWindow()
