@@ -28,6 +28,7 @@ class PDBWidget(gtk.DrawingArea):
         super(PDBWidget, self).__init__()
         self.set_flags( gtk.CAN_FOCUS )
         self.pdb = None
+        self.timer = None
 
     def set_font(self, font):
         t=font.split(' ')
@@ -45,4 +46,10 @@ class PDBWidget(gtk.DrawingArea):
             rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
             self.window.invalidate_rect(rect, True)
             self.window.process_updates(True)
+
+    def redraw_later(self):
+        import glib
+        if self.timer:
+            glib.source_remove( self.timer )
+        self.timer = glib.timeout_add( 500, self.redraw_canvas )
 

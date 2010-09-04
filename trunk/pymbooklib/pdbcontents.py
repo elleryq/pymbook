@@ -150,7 +150,7 @@ class PDBContents(PDBWidget):
             self.__go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
             self.__go_next()
-        self.redraw_canvas()
+        self.redraw_later()
         return True
 
     def button_release(self, widget, event):
@@ -177,7 +177,7 @@ class PDBContents(PDBWidget):
             self.__go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.__go_next()
-        self.redraw_canvas()
+        self.redraw_later()
         return False
 
     def which_chapter(self, x, y):
