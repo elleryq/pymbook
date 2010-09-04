@@ -188,7 +188,7 @@ class PDBCanvas(PDBWidget):
         elif event.direction==gtk.gdk.SCROLL_DOWN:
             self.pager.go_next()
         self.chapter=self.pager.get_current_chapter()
-        self.redraw_canvas()
+        self.redraw_later()
         return True
 
     def key_release(self, widget, event ):
@@ -202,6 +202,6 @@ class PDBCanvas(PDBWidget):
             self.pager.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.pager.go_next()
-        self.redraw_canvas()
+        self.redraw_later()
         return False
 

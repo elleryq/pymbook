@@ -159,6 +159,12 @@ class BookshelfWidget(gtk.DrawingArea):
 
         return False
 
+    def redraw_later(self):
+        import glib
+        if self.timer:
+            glib.source_remove( self.timer )
+        self.timer = glib.timeout_add( 500, self.redraw_canvas )
+
     def scroll_event(self, widget, event):
         if not self.books:
             return False
@@ -167,7 +173,7 @@ class BookshelfWidget(gtk.DrawingArea):
             self.__go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
             self.__go_next()
-        self.redraw_canvas()
+        self.redraw_later()
         return True
 
     def button_release(self, widget, event):
@@ -194,7 +200,7 @@ class BookshelfWidget(gtk.DrawingArea):
             self.__go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.__go_next()
-        self.redraw_canvas()
+        self.redraw_later()
         return False
 
     def which_book(self, x, y):
