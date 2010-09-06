@@ -37,6 +37,58 @@ SHELF_TAB = 0
 CONTENT_TAB = 1
 CONTEXT_TAB = 2
 
+class State( object ):
+    def __init__(self, window):
+        self.window = window
+
+    def enter(self):
+        return self
+
+    def leave(self):
+        return self
+
+class ShelfState( State ):
+    def __init__(self, window):
+        super(ShelfState, self).__init__(window)
+
+    def enter(self):
+        self.window.btn_shelf.set_sensitive( True )
+        self.window.btn_content.set_sensitive( False )
+        self.window.btn_return.set_sensitive( False )
+        return super(ShelfState, self).enter()
+
+class ContentState( State ):
+    def __init__(self, window):
+        super(ContentState, self).__init__(window)
+
+    def enter(self):
+        self.window.btn_shelf.set_sensitive( True )
+        self.window.btn_content.set_sensitive( False )
+        self.window.btn_return.set_sensitive( False )
+        self.window.notebook.set_current_page(CONTENT_TAB)
+        return super(ContentState, self).enter()
+
+class ContentCanBackState( ContentState ):
+    def __init__(self, window):
+        super(ContentState, self).__init__(window)
+
+    def enter(self):
+        self.window.btn_shelf.set_sensitive( True )
+        self.window.btn_content.set_sensitive( False )
+        self.window.btn_return.set_sensitive( True )
+        self.window.notebook.set_current_page(CONTENT_TAB)
+        return super(ContentState, self).enter()
+
+class ReadingState( State ):
+    def __init__(self, window):
+        super(ReadingState, self).__init__(window)
+
+    def enter(self):
+        self.window.btn_shelf.set_sensitive( True )
+        self.window.btn_content.set_sensitive( True )
+        self.window.btn_return.set_sensitive( False )
+        return super(ReadingState, self).enter()
+
 class MainWindow:
     ENTRY_SHELF_PATH = "bookshelf_path"
     ENTRY_WIDTH = "width"
@@ -92,6 +144,10 @@ class MainWindow:
                 self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
 
+        self.btn_shelf = self.builder.get_object("btn_shelf")
+        self.btn_content = self.builder.get_object("btn_content")
+        self.btn_return = self.builder.get_object("btn_return")
+        
         self.act_quit = self.builder.get_object("act_quit")
         self.notebook=self.builder.get_object("notebook1")
 
@@ -135,10 +191,14 @@ class MainWindow:
         if filename and len(filename) and self.open_pdb( filename ):
             self.notebook.set_current_page(CONTENT_TAB)
             self.pdb_filename = filename
+            self.state = ContentState(self).enter()
+        else:
+            self.state = ShelfState(self).enter()
 
         # connect signals
         self.bookshelf.connect("book_selected", self.bookshelf_book_selected_cb )
         self.pdb_contents.connect("chapter_selected", self.pdb_contents_chapter_selected_cb)
+
     	self.builder.connect_signals(self)
     	self.window.show()
 
@@ -215,7 +275,7 @@ class MainWindow:
         if response==gtk.RESPONSE_OK:
             self.pdb_filename=dialog.get_filename()
             if self.open_pdb( self.pdb_filename ):
-                self.notebook.set_current_page(CONTENT_TAB)
+                self.state = ContentState( self ).enter()
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()
@@ -241,6 +301,7 @@ class MainWindow:
 
     def act_index_activate_cb(self, b):
         self.notebook.set_current_page(CONTENT_TAB)
+        self.state = ContentCanBackState(self).enter()
 
     def act_preference_activate_cb(self, b):
         try:
@@ -280,6 +341,7 @@ class MainWindow:
         self.notebook.set_current_page(CONTEXT_TAB)
         self.pdb_canvas.set_chapter(chapter)
         self.pdb_canvas.redraw_canvas()
+        self.state = ReadingState(self).enter()
 
     def bookshelf_book_selected_cb(self, widget, book):
         if book==-1:
@@ -296,7 +358,7 @@ class MainWindow:
         book_name, pdb_filename = self.bookshelf.get_book(book) 
         if self.open_pdb( pdb_filename ):
             self.pdb_filename = pdb_filename
-            self.notebook.set_current_page(CONTENT_TAB)
+            self.state = ContentState(self).enter()
 
 def main():
     window=MainWindow()
