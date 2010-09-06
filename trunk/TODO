@@ -1,1 +1,5 @@
  * Indicate more or no more pages in contents/bookshelf.
+ * Split MainWindow out.
+ * Refer terminator to get the location of glade files.
+ * Save the reading position.
+ * Bookmark.
