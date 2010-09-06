@@ -43,6 +43,7 @@ class MainWindow:
     ENTRY_HEIGHT = "height"
     ENTRY_FONT_NAME = "font_name"
     ENTRY_FONT_SIZE = "font_size"
+    ENTRY_CURRENT_PDB = "current_pdb"
     DEFAULT_FONT_NAME = "文泉驛微米黑"
     DEFAULT_FONT_SIZE = 16
     DEFAULT_WIDTH = 640
@@ -128,6 +129,13 @@ class MainWindow:
         self.notebook.append_page(frame, label)
         self.pdb_canvas.show()
 
+        filename = None
+        if self.config.has_option( self.SECTION, self.ENTRY_CURRENT_PDB ):
+            filename = self.config.get( self.SECTION, self.ENTRY_CURRENT_PDB )
+        if filename and len(filename) and self.open_pdb( filename ):
+            self.notebook.set_current_page(CONTENT_TAB)
+            self.pdb_filename = filename
+
         # connect signals
         self.bookshelf.connect("book_selected", self.bookshelf_book_selected_cb )
         self.pdb_contents.connect("chapter_selected", self.pdb_contents_chapter_selected_cb)
@@ -174,6 +182,8 @@ class MainWindow:
         rect = self.window.get_allocation()
         self.config.set( self.SECTION, self.ENTRY_WIDTH, rect.width )
         self.config.set( self.SECTION, self.ENTRY_HEIGHT, rect.height )
+        self.config.set( self.SECTION, self.ENTRY_CURRENT_PDB,
+                    self.pdb_filename )
         self.save_config()
     	gtk.main_quit()
     
