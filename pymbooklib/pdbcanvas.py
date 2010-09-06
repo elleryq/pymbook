@@ -126,7 +126,7 @@ class PDBCanvas(PDBWidget):
 
         if self.recalc:
             self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-            self.y_pos_list=range(cell_height, rect.height, cell_height)
+            self.y_pos_list=range(cell_height, rect.height-cell_height, cell_height)
             columns_in_page=len( self.x_pos_list )
             words_in_line=len(self.y_pos_list)
             self.pager=TextPager(self.pdb, columns_in_page, words_in_line)
