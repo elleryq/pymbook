@@ -87,6 +87,9 @@ class MainWindow:
     	self.window = self.builder.get_object("window1")
         self.window.set_title( APP_NAME )
         self.window.set_position( gtk.WIN_POS_CENTER )
+        self.window.set_size_request(
+                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
+                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
 
         self.act_quit = self.builder.get_object("act_quit")
         self.notebook=self.builder.get_object("notebook1")
@@ -97,9 +100,6 @@ class MainWindow:
 
         # Add bookshelf tab
         self.bookshelf = BookshelfWidget( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH ) )
-        self.bookshelf.set_size_request(
-                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
-                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         self.bookshelf.set_font( font )
         frame=gtk.Frame()
         frame.show()
@@ -110,9 +110,6 @@ class MainWindow:
 
         # Add contents tab
         self.pdb_contents=PDBContents()
-        self.pdb_contents.set_size_request( 
-                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
-                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         self.pdb_contents.set_font( font )
         frame=gtk.Frame()
         frame.show()
@@ -124,9 +121,6 @@ class MainWindow:
         # Add text tab
         self.pdb_canvas=PDBCanvas()
         frame=gtk.Frame()
-        frame.set_size_request(
-                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
-                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
         self.pdb_canvas.set_font( font )
         frame.show()
         frame.add(self.pdb_canvas)
@@ -177,6 +171,10 @@ class MainWindow:
         self.act_quit.activate()
 
     def act_quit_activate_cb(self, b):
+        rect = self.window.get_allocation()
+        self.config.set( self.SECTION, self.ENTRY_WIDTH, rect.width )
+        self.config.set( self.SECTION, self.ENTRY_HEIGHT, rect.height )
+        self.save_config()
     	gtk.main_quit()
     
     def act_about_activate_cb(self, b):
