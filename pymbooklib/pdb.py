@@ -36,7 +36,7 @@ class PDBException(BaseException):
     def __str__(self):
         return repr(self.value)
 
-class BaseOperation:
+class BaseOperation(object):
     """
     Use template pattern to extract base operation.  The real implementation is in UnicodeOperation and DblByteOperation.
     """
@@ -68,7 +68,7 @@ class UnicodeOperation(BaseOperation):
     """
     
     def __init__( self ):
-        BaseOperation.__init__(self)
+        super(UnicodeOperation, self).__init__()
         self.empty_str = u""
     
     def processString(self, raw_str):
@@ -103,7 +103,7 @@ class DblByteOperation( BaseOperation ):
     """
     
     def __init__( self ):
-        BaseOperation.__init__(self)
+        super(DblByteOperation, self).__init__()
         self.empty_str = ""
     
     def processString(self, raw_str):
