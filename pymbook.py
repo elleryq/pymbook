@@ -58,6 +58,14 @@ class ShelfState( State ):
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(SHELF_TAB)
 
+class ShelfCanBackState( ShelfState ):
+    def __init__(self, window):
+        super(ShelfCanBackState, self).__init__(window)
+
+    def enter(self):
+        super(ShelfCanBackState, self).enter()
+        self.window.btn_return.set_sensitive( True )
+
 class ContentState( State ):
     def __init__(self, window):
         super(ContentState, self).__init__(window)
@@ -322,7 +330,10 @@ class MainWindow:
         pref_dlg.destroy()
 
     def act_shelf_activate_cb( self, b ):
-        self.state = ShelfState(self).enter()
+        if isinstance(self.state, type(self.state)):
+            self.state = ShelfCanBackState(self).enter()
+        else:
+            self.state = ShelfState(self).enter()
 
     def act_return_activate_cb( self, b ):
         self.state = ReadingState(self).enter()
