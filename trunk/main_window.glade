@@ -37,8 +37,8 @@
                       <object class="GtkImageMenuItem" id="imagemenuitem7">
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">Preference</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">act_preference</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -72,16 +72,17 @@
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem7">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">act_shelf</property>
+                        <property name="use_action_appearance">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem5">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">act_content</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -144,8 +145,8 @@
             <child>
               <object class="GtkToolButton" id="btn_open">
                 <property name="visible">True</property>
-                <property name="use_action_appearance">True</property>
                 <property name="related_action">act_open</property>
+                <property name="use_action_appearance">True</property>
                 <property name="label" translatable="yes">Open</property>
                 <property name="use_underline">True</property>
               </object>
@@ -183,6 +184,28 @@
                 <property name="label" translatable="yes">Index</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-index</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="btn_return">
+                <property name="visible">True</property>
+                <property name="related_action">act_return</property>
+                <property name="label" translatable="yes">toolbutton3</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-go-back</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton2">
+                <property name="visible">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -280,5 +303,10 @@
     <property name="tooltip">Open bookshelf</property>
     <property name="stock_id">gtk-home</property>
     <signal name="activate" handler="act_shelf_activate_cb"/>
+  </object>
+  <object class="GtkAction" id="act_return">
+    <property name="label">_Return</property>
+    <property name="stock_id">gtk-go-back</property>
+    <signal name="activate" handler="act_return_activate_cb"/>
   </object>
 </interface>
