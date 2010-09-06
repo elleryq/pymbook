@@ -330,7 +330,7 @@ class MainWindow:
         pref_dlg.destroy()
 
     def act_shelf_activate_cb( self, b ):
-        if isinstance(self.state, type(self.state)):
+        if isinstance(self.state, ReadingState):
             self.state = ShelfCanBackState(self).enter()
         else:
             self.state = ShelfState(self).enter()
