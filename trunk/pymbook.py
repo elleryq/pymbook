@@ -234,6 +234,7 @@ class MainWindow:
         self.config.write( open(os.path.expanduser( self.CONFIG_FILENAME ), "wt" ) )
 
     def open_pdb( self, pdb_filename ):
+        import urlparse
         try:
             self.pdb=pdb.PDBFile(pdb_filename).parse()
             self.pdb_contents.set_pdb( self.pdb )
@@ -251,8 +252,11 @@ class MainWindow:
             dialog.destroy()
             return False
         self.window.set_title( "%s - %s" % ( APP_NAME, self.pdb.book_name ) )
-        uri = "file://%s" % pdb_filename
-        self.recent.add_item(uri)
+        uri = urlparse.urljoin( "file://", pdb_filename.encode('utf-8') )
+        self.recent.add_full(uri, {'mime_type':'application/octet-stream',
+                'app_name': APP_NAME, 'app_exec': 'pymbook', 'group':'pymbook',
+                'display_name': self.pdb.book_name.encode('utf-8') } )
+
         return True
 
     def window1_delete_event_cb(self, widget, event, data=None):
