@@ -124,12 +124,14 @@ class MainWindow:
     CONFIG_FILENAME = "~/.config/pymbook.conf"
     SECTION = 'mbook'
 
-    def __init__(self):
-        self.pdb = None
+    def __init__(self, filename=None):
         self.pdb_filename = None
+        self.pdb = None
         self.pref_dlg = None
         self.load_config()
     	self.initialize_component()
+        if filename and self.open_pdb( filename ):
+            self.pdb_filename = filename
 
     def initialize_component(self):
     	try:
@@ -260,7 +262,6 @@ class MainWindow:
         self.recent.add_full(uri, {'mime_type':'application/octet-stream',
                 'app_name': APP_NAME, 'app_exec': 'pymbook', 'group':'pymbook',
                 'display_name': self.pdb.book_name.encode('utf-8') } )
-
         return True
 
     def leave(self):
