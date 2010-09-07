@@ -26,6 +26,7 @@ import gtk
 import gobject
 
 import pdb
+import version
 from version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
 from pdbwidget import PDBWidget
 from pdbcontents import PDBContents
@@ -132,17 +133,20 @@ class MainWindow:
 
     def initialize_component(self):
     	try:
-    		self.builder = gtk.Builder()
-    		self.builder.add_from_file( "main_window.glade" )
+            self.builder = gtk.Builder()
+            glade_file = os.path.join( os.path.dirname( version.__file__ ), 'main_window.glade' )
+            self.builder.add_from_file( glade_file )
     	except BaseException, e:
+            print e
             err_dialog = gtk.MessageDialog(
-                    self.window, 
+                    None, 
                     gtk.DIALOG_MODAL, 
                     gtk.MESSAGE_ERROR, 
                     gtk.BUTTONS_CLOSE, 
                     repr(e))
             result = err_dialog.run()
             err_dialog.destroy()
+            self.leave()
             return
     	self.window = self.builder.get_object("window1")
         self.window.set_title( APP_NAME )
@@ -259,6 +263,15 @@ class MainWindow:
 
         return True
 
+    def leave(self):
+        rect = self.window.get_allocation()
+        self.config.set( self.SECTION, self.ENTRY_WIDTH, rect.width )
+        self.config.set( self.SECTION, self.ENTRY_HEIGHT, rect.height )
+        self.config.set( self.SECTION, self.ENTRY_CURRENT_PDB,
+                    self.pdb_filename )
+        self.save_config()
+    	gtk.main_quit()
+
     def window1_delete_event_cb(self, widget, event, data=None):
         self.act_quit.activate()
 
@@ -269,13 +282,7 @@ class MainWindow:
             self.state = ContentState( self ).enter()
 
     def act_quit_activate_cb(self, b):
-        rect = self.window.get_allocation()
-        self.config.set( self.SECTION, self.ENTRY_WIDTH, rect.width )
-        self.config.set( self.SECTION, self.ENTRY_HEIGHT, rect.height )
-        self.config.set( self.SECTION, self.ENTRY_CURRENT_PDB,
-                    self.pdb_filename )
-        self.save_config()
-    	gtk.main_quit()
+        self.leave()
     
     def act_about_activate_cb(self, b):
         dialog=gtk.AboutDialog()
@@ -335,7 +342,8 @@ class MainWindow:
     def act_preference_activate_cb(self, b):
         try:
             builder = gtk.Builder()
-            pref_dlg = builder.add_from_file( "preference_dialog.glade" )
+            glade_file = os.path.join( os.path.dirname( version.__file__ ), 'preference_dialog.glade' )
+            pref_dlg = builder.add_from_file( glade_file )
         except BaseException, e:
             print( e )
             return
