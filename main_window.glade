@@ -49,6 +49,18 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="mi_recent_files">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Recent files</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem10">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem5">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>

@@ -158,6 +158,18 @@ class MainWindow:
         self.act_quit = self.builder.get_object("act_quit")
         self.notebook=self.builder.get_object("notebook1")
 
+        # Recent files
+        self.recent = gtk.RecentManager()
+        menu_recent = gtk.RecentChooserMenu(self.recent)
+        menu_recent.set_limit(10)
+        self.file_filter = gtk.RecentFilter()
+        self.file_filter.add_pattern("*.pdb")
+        self.file_filter.add_pattern("*.updb")
+        menu_recent.set_filter(self.file_filter)
+        menu_recent.connect("item-activated", self.select_recent_cb)
+        menuitem_recent = self.builder.get_object("mi_recent_files")
+        menuitem_recent.set_submenu(menu_recent)
+
         font = "%s %d" % ( 
                 self.config.get( self.SECTION, self.ENTRY_FONT_NAME ),
                 self.config.getint( self.SECTION, self.ENTRY_FONT_SIZE ) )
@@ -239,10 +251,18 @@ class MainWindow:
             dialog.destroy()
             return False
         self.window.set_title( "%s - %s" % ( APP_NAME, self.pdb.book_name ) )
+        uri = "file://%s" % pdb_filename
+        self.recent.add_item(uri)
         return True
 
     def window1_delete_event_cb(self, widget, event, data=None):
         self.act_quit.activate()
+
+    def select_recent_cb(self, menu):
+        filename = menu.get_current_item().get_uri_display()
+        if self.open_pdb( filename ):
+            self.pdb_filename = filename
+            self.state = ContentState( self ).enter()
 
     def act_quit_activate_cb(self, b):
         rect = self.window.get_allocation()
