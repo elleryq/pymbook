@@ -26,10 +26,13 @@ import gtk
 
 from pymbooklib.mainwindow import MainWindow
 
-def main():
-    window=MainWindow()
+def main( arg ):
+    if len(arg)>0:
+        window = MainWindow( arg[0] )
+    else:
+        window = MainWindow()
     gtk.main()
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
 
