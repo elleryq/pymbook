@@ -1,0 +1,14 @@
+Source: pymbook
+Section: unknown
+Priority: extra
+Maintainer: Yan-ren Tsai <elleryq@gmail.com>
+Build-Depends: debhelper (>= 7), python-central (>=0.5.6), python (>=2.4)
+XS-Python-Version: >=2.4
+XB-Python-Version: >=2.4
+Standards-Version: 3.8.1
+Homepage: http://code.google.com/p/pymbook/
+Package: pymbook
+Architecture: all
+Depends: ${misc:Depends}
+Description: A reader application for http://www.haodoo.net
+ A reader application for http://www.haodoo.net 
