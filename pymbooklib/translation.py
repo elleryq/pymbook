@@ -26,10 +26,12 @@ try:
     import gettext
     gettext.textdomain(APP_NAME)
     _ = gettext.gettext
-except:
+except Exception, e:
+    print e
     def dummytrans (text):
         """A _ function for systems without gettext. Effectively a NOOP"""
         return(text)
 
     _ = dummytrans
+    print( "use dummytrans" )
 

@@ -20,12 +20,10 @@
                   <object class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem1">
-                        <property name="label">gtk-open</property>
+                      <object class="GtkMenuItem" id="imagemenuitem1">
                         <property name="visible">True</property>
                         <property name="related_action">act_open</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_action_appearance">True</property>
                       </object>
                     </child>
                     <child>
@@ -34,13 +32,12 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem7">
+                      <object class="GtkMenuItem" id="imagemenuitem7">
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">Preference</property>
                         <property name="related_action">act_preference</property>
                         <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
@@ -62,10 +59,9 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem5">
-                        <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="related_action">act_quit</property>
-                        <property name="use_underline">True</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -82,21 +78,19 @@
                   <object class="GtkMenu" id="menu2">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuitem7">
+                      <object class="GtkMenuItem" id="menuitem7">
                         <property name="visible">True</property>
                         <property name="related_action">act_shelf</property>
                         <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuitem5">
+                      <object class="GtkMenuItem" id="menuitem5">
                         <property name="visible">True</property>
                         <property name="related_action">act_content</property>
                         <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
                       </object>
                     </child>
                   </object>
@@ -112,12 +106,10 @@
                   <object class="GtkMenu" id="menu4">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem2">
-                        <property name="label">gtk-select-font</property>
+                      <object class="GtkMenuItem" id="imagemenuitem2">
                         <property name="visible">True</property>
                         <property name="related_action">act_font</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_action_appearance">True</property>
                       </object>
                     </child>
                   </object>
@@ -133,12 +125,10 @@
                   <object class="GtkMenu" id="menu3">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem10">
-                        <property name="label">gtk-about</property>
+                      <object class="GtkMenuItem" id="imagemenuitem10">
                         <property name="visible">True</property>
                         <property name="related_action">act_about</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_action_appearance">True</property>
                       </object>
                     </child>
                   </object>
@@ -276,48 +266,48 @@
     </child>
   </object>
   <object class="GtkAction" id="act_quit">
-    <property name="label">_Quit</property>
+    <property name="label" translatable="yes">_Quit</property>
     <property name="stock_id">gtk-quit</property>
     <signal name="activate" handler="act_quit_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_about">
-    <property name="label">_About</property>
+    <property name="label" translatable="yes">_About</property>
     <property name="tooltip">About</property>
     <property name="stock_id">gtk-about</property>
     <signal name="activate" handler="act_about_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_open">
-    <property name="label">_Open</property>
+    <property name="label" translatable="yes">_Open</property>
     <property name="tooltip">Open a pdb file</property>
     <property name="stock_id">gtk-open</property>
     <signal name="activate" handler="act_open_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_font">
-    <property name="label">_Font</property>
+    <property name="label" translatable="yes">_Font</property>
     <property name="tooltip">Open font dialog</property>
     <property name="stock_id">gtk-select-font</property>
     <signal name="activate" handler="act_font_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_content">
-    <property name="label">_Content</property>
+    <property name="label" translatable="yes">_Content</property>
     <property name="tooltip">Go Content</property>
     <property name="stock_id">gtk-index</property>
     <signal name="activate" handler="act_index_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_preference">
-    <property name="label">_Preference</property>
+    <property name="label" translatable="yes">_Preference</property>
     <property name="tooltip">Preference</property>
     <property name="stock_id">gtk-preferences</property>
     <signal name="activate" handler="act_preference_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_shelf">
-    <property name="label">_Bookshelf</property>
+    <property name="label" translatable="yes">_Bookshelf</property>
     <property name="tooltip">Open bookshelf</property>
     <property name="stock_id">gtk-home</property>
     <signal name="activate" handler="act_shelf_activate_cb"/>
   </object>
   <object class="GtkAction" id="act_return">
-    <property name="label">_Return</property>
+    <property name="label" translatable="yes">_Return</property>
     <property name="stock_id">gtk-go-back</property>
     <signal name="activate" handler="act_return_activate_cb"/>
   </object>

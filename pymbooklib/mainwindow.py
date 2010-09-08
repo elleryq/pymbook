@@ -136,6 +136,7 @@ class MainWindow:
     def initialize_component(self):
     	try:
             self.builder = gtk.Builder()
+            self.builder.set_translation_domain(APP_NAME)
             glade_file = os.path.join( os.path.dirname( version.__file__ ), 'main_window.glade' )
             self.builder.add_from_file( glade_file )
     	except BaseException, e:
@@ -343,6 +344,7 @@ class MainWindow:
     def act_preference_activate_cb(self, b):
         try:
             builder = gtk.Builder()
+            builder.set_translation_domain(APP_NAME)
             glade_file = os.path.join( os.path.dirname( version.__file__ ), 'preference_dialog.glade' )
             pref_dlg = builder.add_from_file( glade_file )
         except BaseException, e:

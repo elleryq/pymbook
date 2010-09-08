@@ -128,8 +128,8 @@ class InstallData(install_data):
   def run (self):
     self.data_files.extend (self._find_mo_files ())
     install_data.run (self)
-    if not self.distribution.without_icon_cache:
-      self._update_icon_cache ()
+    #if not self.distribution.without_icon_cache:
+    #  self._update_icon_cache ()
 
   # We should do this on uninstall too
   def _update_icon_cache(self):
@@ -164,7 +164,7 @@ setup(name=APP_NAME.capitalize(),
                   ('share/pixmaps', ['data/logo.png']),
                  ],
       packages=['pymbooklib',],
-      package_data={'pymbooklib': ['main_window.glade', 'preference_dialog.glade']},
+      package_data={'pymbooklib': ['main_window.glade', 'preference_dialog.glade', 'logo.png']},
       cmdclass={'build': BuildData, 'install_data': InstallData, 'uninstall': Uninstall},
       distclass=pymbookDist
      )
