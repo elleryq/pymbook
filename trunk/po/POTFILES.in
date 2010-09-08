@@ -1,0 +1,14 @@
+[encoding: UTF-8]
+pymbook
+data/pymbook.desktop.in
+pymbooklib/version.py
+pymbooklib/bookshelf.py
+pymbooklib/pdb.py
+pymbooklib/__init__.py
+pymbooklib/mainwindow.py
+pymbooklib/translation.py
+pymbooklib/pdbwidget.py
+pymbooklib/pdbcontents.py
+pymbooklib/pdbcanvas.py
+pymbooklib/main_window.glade
+pymbooklib/preference_dialog.glade
