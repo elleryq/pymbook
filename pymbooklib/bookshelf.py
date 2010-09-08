@@ -21,17 +21,7 @@
 import gobject
 import gtk
 from pdbwidget import PDBWidget
-from pdb import PDBFile
-
-def find_pdbs( path ):
-    """Find all pdb/updb files according the specified path(absolute path).
-    And return the filename lists which contain full path.
-    """
-    import glob
-    import os
-    pdbfiles = glob.glob( os.path.join( path, "*.pdb" ) ) + glob.glob( os.path.join( path, "*.updb" ) )
-    books = [ ( PDBFile( pdb_filename ).parse().book_name, pdb_filename ) for pdb_filename in pdbfiles ]
-    return sorted( books )
+from utils import find_pdbs
 
 class BookshelfWidget(gtk.DrawingArea):
     __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
@@ -219,7 +209,3 @@ class BookshelfWidget(gtk.DrawingArea):
 
     def get_book( self, idx ):
         return self.books[ idx ]
-
-if __name__ == "__main__":
-    print __find_pdbs( "" )
-
