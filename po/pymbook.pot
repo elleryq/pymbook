@@ -1,0 +1,122 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-09-08 11:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../data/pymbook.desktop.in.h:1
+msgid "Reader for Haodoo"
+msgstr ""
+
+#: ../data/pymbook.desktop.in.h:2
+msgid "pymbook"
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:189
+msgid "Bookshelf"
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:199
+msgid "Contents"
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:209
+msgid "Text"
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:256
+msgid "Cannot open specified pdb."
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:294
+msgid "Distributed under the GPL3."
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:299
+msgid "Open..."
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:307
+msgid "PDB/uPDB files"
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:322
+msgid "Choose font"
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:381
+msgid "No such chapter."
+msgstr ""
+
+#: ../pymbooklib/mainwindow.py:397
+msgid "No such book."
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:1
+msgid "Index"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:2
+msgid "Open"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:3
+#: ../pymbooklib/preference_dialog.glade.h:3
+msgid "Preference"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:4
+msgid "Quit"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:5
+msgid "Shelf"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:6
+msgid "_File"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:7
+msgid "_Go"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:8
+msgid "_Help"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:9
+msgid "_Recent files"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:10
+msgid "_View"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:11
+msgid "toolbutton3"
+msgstr ""
+
+#: ../pymbooklib/preference_dialog.glade.h:1
+msgid "<b>Preferences</b>"
+msgstr ""
+
+#: ../pymbooklib/preference_dialog.glade.h:2
+msgid "Choose path"
+msgstr ""
+
+#: ../pymbooklib/preference_dialog.glade.h:4
+msgid "The bookshelf path:"
+msgstr ""
