@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-09-08 11:12+0800\n"
+"POT-Creation-Date: 2010-09-08 14:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,43 +24,43 @@ msgstr ""
 msgid "pymbook"
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:189
+#: ../pymbooklib/mainwindow.py:190
 msgid "Bookshelf"
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:199
+#: ../pymbooklib/mainwindow.py:200
 msgid "Contents"
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:209
+#: ../pymbooklib/mainwindow.py:210
 msgid "Text"
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:256
+#: ../pymbooklib/mainwindow.py:257
 msgid "Cannot open specified pdb."
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:294
+#: ../pymbooklib/mainwindow.py:295
 msgid "Distributed under the GPL3."
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:299
+#: ../pymbooklib/mainwindow.py:300
 msgid "Open..."
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:307
+#: ../pymbooklib/mainwindow.py:308
 msgid "PDB/uPDB files"
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:322
+#: ../pymbooklib/mainwindow.py:323
 msgid "Choose font"
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:381
+#: ../pymbooklib/mainwindow.py:383
 msgid "No such chapter."
 msgstr ""
 
-#: ../pymbooklib/mainwindow.py:397
+#: ../pymbooklib/mainwindow.py:399
 msgid "No such book."
 msgstr ""
 
@@ -86,26 +86,58 @@ msgid "Shelf"
 msgstr ""
 
 #: ../pymbooklib/main_window.glade.h:6
-msgid "_File"
+msgid "_About"
 msgstr ""
 
 #: ../pymbooklib/main_window.glade.h:7
-msgid "_Go"
+msgid "_Bookshelf"
 msgstr ""
 
 #: ../pymbooklib/main_window.glade.h:8
-msgid "_Help"
+msgid "_Content"
 msgstr ""
 
 #: ../pymbooklib/main_window.glade.h:9
-msgid "_Recent files"
+msgid "_File"
 msgstr ""
 
 #: ../pymbooklib/main_window.glade.h:10
-msgid "_View"
+msgid "_Font"
 msgstr ""
 
 #: ../pymbooklib/main_window.glade.h:11
+msgid "_Go"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:12
+msgid "_Help"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:13
+msgid "_Open"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:14
+msgid "_Preference"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:15
+msgid "_Quit"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:16
+msgid "_Recent files"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:17
+msgid "_Return"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:18
+msgid "_View"
+msgstr ""
+
+#: ../pymbooklib/main_window.glade.h:19
 msgid "toolbutton3"
 msgstr ""
 

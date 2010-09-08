@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pymbook\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-09-08 11:12+0800\n"
-"PO-Revision-Date: 2010-09-08 11:33+0800\n"
+"POT-Creation-Date: 2010-09-08 14:13+0800\n"
+"PO-Revision-Date: 2010-09-08 14:14+0800\n"
 "Last-Translator: Yan-ren Tsai <elleryq@gmail.com>\n"
 "Language-Team: zh-TW <>\n"
 "MIME-Version: 1.0\n"
@@ -23,43 +23,43 @@ msgstr "好讀閱讀軟體"
 msgid "pymbook"
 msgstr "pymbook"
 
-#: ../pymbooklib/mainwindow.py:189
+#: ../pymbooklib/mainwindow.py:190
 msgid "Bookshelf"
 msgstr "書櫃"
 
-#: ../pymbooklib/mainwindow.py:199
+#: ../pymbooklib/mainwindow.py:200
 msgid "Contents"
 msgstr "目錄"
 
-#: ../pymbooklib/mainwindow.py:209
+#: ../pymbooklib/mainwindow.py:210
 msgid "Text"
 msgstr "書頁"
 
-#: ../pymbooklib/mainwindow.py:256
+#: ../pymbooklib/mainwindow.py:257
 msgid "Cannot open specified pdb."
 msgstr "無法開啟指定的檔案。"
 
-#: ../pymbooklib/mainwindow.py:294
+#: ../pymbooklib/mainwindow.py:295
 msgid "Distributed under the GPL3."
 msgstr "以 GPL3 散佈。"
 
-#: ../pymbooklib/mainwindow.py:299
+#: ../pymbooklib/mainwindow.py:300
 msgid "Open..."
 msgstr "開啟..."
 
-#: ../pymbooklib/mainwindow.py:307
+#: ../pymbooklib/mainwindow.py:308
 msgid "PDB/uPDB files"
 msgstr "PDB/uPDB 檔案"
 
-#: ../pymbooklib/mainwindow.py:322
+#: ../pymbooklib/mainwindow.py:323
 msgid "Choose font"
 msgstr "選擇字型"
 
-#: ../pymbooklib/mainwindow.py:381
+#: ../pymbooklib/mainwindow.py:383
 msgid "No such chapter."
 msgstr "無此章節。"
 
-#: ../pymbooklib/mainwindow.py:397
+#: ../pymbooklib/mainwindow.py:399
 msgid "No such book."
 msgstr "無此書。"
 
@@ -85,26 +85,58 @@ msgid "Shelf"
 msgstr "書櫃"
 
 #: ../pymbooklib/main_window.glade.h:6
+msgid "_About"
+msgstr "關於(_A)"
+
+#: ../pymbooklib/main_window.glade.h:7
+msgid "_Bookshelf"
+msgstr "書櫃(_B)"
+
+#: ../pymbooklib/main_window.glade.h:8
+msgid "_Content"
+msgstr "目錄(_C)"
+
+#: ../pymbooklib/main_window.glade.h:9
 msgid "_File"
 msgstr "檔案(_F)"
 
-#: ../pymbooklib/main_window.glade.h:7
+#: ../pymbooklib/main_window.glade.h:10
+msgid "_Font"
+msgstr "字型(_F)"
+
+#: ../pymbooklib/main_window.glade.h:11
 msgid "_Go"
 msgstr "到(_G)"
 
-#: ../pymbooklib/main_window.glade.h:8
+#: ../pymbooklib/main_window.glade.h:12
 msgid "_Help"
 msgstr "求助(_H)"
 
-#: ../pymbooklib/main_window.glade.h:9
+#: ../pymbooklib/main_window.glade.h:13
+msgid "_Open"
+msgstr "開啟(_O)"
+
+#: ../pymbooklib/main_window.glade.h:14
+msgid "_Preference"
+msgstr "偏好設定(_P)"
+
+#: ../pymbooklib/main_window.glade.h:15
+msgid "_Quit"
+msgstr "離開(_Q)"
+
+#: ../pymbooklib/main_window.glade.h:16
 msgid "_Recent files"
 msgstr "曾開啟的檔案(_R)"
 
-#: ../pymbooklib/main_window.glade.h:10
+#: ../pymbooklib/main_window.glade.h:17
+msgid "_Return"
+msgstr "返回(_R)"
+
+#: ../pymbooklib/main_window.glade.h:18
 msgid "_View"
 msgstr "檢視(_V)"
 
-#: ../pymbooklib/main_window.glade.h:11
+#: ../pymbooklib/main_window.glade.h:19
 msgid "toolbutton3"
 msgstr " "
 
@@ -119,3 +151,9 @@ msgstr "選擇路徑"
 #: ../pymbooklib/preference_dialog.glade.h:4
 msgid "The bookshelf path:"
 msgstr "書櫃所在路徑："
+
+#~ msgid "gtk-about"
+#~ msgstr "關於"
+
+#~ msgid "gtk-select-font"
+#~ msgstr "字型"
