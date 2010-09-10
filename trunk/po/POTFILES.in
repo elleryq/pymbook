@@ -10,5 +10,6 @@ pymbooklib/translation.py
 pymbooklib/pdbwidget.py
 pymbooklib/pdbcontents.py
 pymbooklib/pdbcanvas.py
+pymbooklib/utils.py
 pymbooklib/main_window.glade
 pymbooklib/preference_dialog.glade
