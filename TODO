@@ -3,3 +3,5 @@
  * Bookmark.
  * Try configure-event
  * The book maker.
+ * Refactoring pdbcanvas/pdbcontents/bookshelf.
+ * Test pymbook.spec in Fedora RPM package manager.
