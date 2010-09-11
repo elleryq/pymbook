@@ -39,22 +39,10 @@ class DataSource(object):
         return self.pages[ index ]
 
     def process(self):
-        pass
-
-class ShelfDataSource(DataSource):
-    """
-    ShelfDataSource
-    """
-    def __init__(self, lines_in_page, glyphs_in_line, source ):
-        super(ShelfDataSource, self).__init__(lines_in_page,
-                glyphs_in_line, source )
-
-    def process(self):
-        super(ShelfDataSource, self).process()
         page = []
         count = 0
-        for book_name, pdb_filename in self.source:
-            line = book_name[0:self.glyphs_in_line]
+        for item in self.extract_items_from_source():
+            line = item[0:self.glyphs_in_line]
             page.append( line )
             count = count+1
             if count >= self.lines_in_page:
@@ -64,12 +52,41 @@ class ShelfDataSource(DataSource):
         if count>0:
             self.pages.append( page )
 
+
+    def extract_items_from_source(self):
+        pass
+
+class ShelfDataSource(DataSource):
+    """
+    ShelfDataSource
+    """
+    def extract_items_from_source(self):
+        return [book_name for book_name, pdb_filename in self.source]
+
+class ContentDataSource(DataSource):
+    """
+    ContentDataSource
+    """
+    def extract_items_from_source(self):
+        return self.source.contents
+
 if __name__ == '__main__':
     from utils import find_pdbs
+    from pdb import PDBFile
+
+    def dump_source( source, convert_func ):
+        index = 1
+        for page in source:
+            print( "Page %d" % index )
+            index = index + 1
+            for line in page:
+                print( convert_func(line) )
+
+    print("ShelfDataSource:")
     source = ShelfDataSource(1, 25, find_pdbs('..'))
-    index = 1
-    for page in source:
-        print( "Page %d" % index )
-        index = index + 1
-        for line in page:
-            print( "  %s" % line.encode('utf-8') )
+    dump_source( source, lambda l: l.encode('utf-8') )
+
+    print("ContentDataSource:")
+    source = ContentDataSource(1, 25,
+            PDBFile("../65e.pdb").parse() )
+    dump_source( source, lambda l: l.encode('utf-8') )
