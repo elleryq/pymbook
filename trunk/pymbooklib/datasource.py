@@ -52,7 +52,6 @@ class DataSource(object):
         if count>0:
             self.pages.append( page )
 
-
     def extract_items_from_source(self):
         pass
 
@@ -70,6 +69,37 @@ class ContentDataSource(DataSource):
     def extract_items_from_source(self):
         return self.source.contents
 
+class ChapterDataSource(DataSource):
+    """
+    ChapterDataSource
+    """
+    def extract_items_from_source(self):
+        pass
+
+    def process(self):
+        self.current=0
+        self.pages=[]
+        for num in range(self.source.chapters):
+            content = self.source.chapter(num)
+            columns=0
+            words=0
+            page=[]
+            num_in_chapter=0
+            for c in content:
+                if c==u'\u000a' or words>=self.glyphs_in_line:
+                    columns=columns+1
+                    words=0
+                if c!='\u000d' and c!='\u000a':
+                    words=words+1
+                page.append( c )
+                if columns>=self.lines_in_page:
+                    self.pages.append( (num, num_in_chapter, page) )
+                    num_in_chapter=num_in_chapter+1
+                    page=[]
+                    columns=0
+                    words=0
+            self.pages.append( (num, num_in_chapter, page) )
+
 if __name__ == '__main__':
     from utils import find_pdbs
     from pdb import PDBFile
@@ -86,7 +116,10 @@ if __name__ == '__main__':
     source = ShelfDataSource(1, 25, find_pdbs('..'))
     dump_source( source, lambda l: l.encode('utf-8') )
 
+    pdb = PDBFile("../65e.pdb").parse() 
     print("ContentDataSource:")
-    source = ContentDataSource(1, 25,
-            PDBFile("../65e.pdb").parse() )
+    source = ContentDataSource(1, 25, pdb )
     dump_source( source, lambda l: l.encode('utf-8') )
+
+    source = ChapterDataSource(80, 25, pdb )
+    dump_source( source, lambda x: x )
