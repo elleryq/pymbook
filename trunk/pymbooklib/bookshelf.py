@@ -23,6 +23,33 @@ import gtk
 from pdbwidget import PDBWidget
 from utils import find_pdbs
 
+class PagedDataSource(object):
+    def __init__(self, source, columns_in_page ):
+        self.source = source
+        self.columns_in_page = columns_in_page
+        self.__pagination()
+
+    def __pagination(self):
+        self.pages=[]
+        page_len = len(self.source)/self.columns_in_page+1
+        for i in range(page_len):
+            self.pages.append( 
+                    self.source[self.columns_in_page*i:self.columns_in_page*(i+1)])
+        self.current_page=0
+
+    def go_previous(self):
+        self.current_page=self.current_page-1
+        if self.current_page<0:
+            self.current_page=0
+
+    def go_next(self):
+        self.current_page=self.current_page+1
+        if self.current_page>=len(self.pages):
+            self.current_page=len(self.pages)-1
+
+    def get_current_page(self):
+        return self.pages[self.current_page]
+
 class BookshelfWidget(gtk.DrawingArea):
     __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,
@@ -49,27 +76,6 @@ class BookshelfWidget(gtk.DrawingArea):
         t=font.split(' ')
         self.font_name = t[0]
         self.font_size = int(t[-1])
-
-    def __pagination(self, columns_in_page ):
-        self.pages=[]
-        page_len = len(self.books)/columns_in_page+1
-        for i in range(page_len):
-            self.pages.append( 
-                    self.books[columns_in_page*i:columns_in_page*(i+1)])
-        self.current_page=0
-
-    def __go_previous(self):
-        self.current_page=self.current_page-1
-        if self.current_page<0:
-            self.current_page=0
-
-    def __go_next(self):
-        self.current_page=self.current_page+1
-        if self.current_page>=len(self.pages):
-            self.current_page=len(self.pages)-1
-
-    def __get_current_page(self):
-        return self.pages[self.current_page]
 
     def redraw_canvas(self):
         if self.window:
@@ -102,7 +108,7 @@ class BookshelfWidget(gtk.DrawingArea):
             self.y_pos_list=range(0, rect.height, (rect.height-1) )
             self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
             columns_in_page=len( self.x_pos_list )-1
-            self.__pagination(columns_in_page)
+            self.datasource = PagedDataSource( self.books, columns_in_page )
             self.old_rect=rect
             self.recalc=False
 
@@ -130,7 +136,7 @@ class BookshelfWidget(gtk.DrawingArea):
         start_y = 0
         columns_in_page=len( self.x_pos_list )
         try:
-            for book_name, pdb_filename in self.__get_current_page():
+            for book_name, pdb_filename in self.datasource.get_current_page():
                 x = self.x_pos_list[ start_x ] + cell_width/4
                 y = self.y_pos_list[ start_y ] + cell_height
                 for c in book_name:
@@ -144,7 +150,7 @@ class BookshelfWidget(gtk.DrawingArea):
                     start_x = 1
         except IndexError, e:
             print start_x, len(self.x_pos_list), columns_in_page, \
-    len(self.__get_current_page())
+    len(self.get_current_page())
         cx.restore()
 
         return False
@@ -160,9 +166,9 @@ class BookshelfWidget(gtk.DrawingArea):
             return False
 
         if event.direction==gtk.gdk.SCROLL_UP:
-            self.__go_previous()
+            self.datasource.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
-            self.__go_next()
+            self.datasource.go_next()
         self.redraw_later()
         return True
 
@@ -183,13 +189,13 @@ class BookshelfWidget(gtk.DrawingArea):
         if not self.books:
             return False
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
-            self.__go_previous()
+            self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
-            self.__go_next()
+            self.datasource.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
-            self.__go_previous()
+            self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
-            self.__go_next()
+            self.datasource.go_next()
         self.redraw_later()
         return False
 
@@ -199,8 +205,8 @@ class BookshelfWidget(gtk.DrawingArea):
             if r.point_in( int(x), int(y) ):
                 break
             selected=selected+1
-        if self.current_page>0:
-            for page in self.pages[:self.current_page]:
+        if self.datasource.current_page>0:
+            for page in self.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
         book = selected
         if book>=len(self.books):
