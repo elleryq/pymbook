@@ -21,6 +21,7 @@
 import gobject
 import gtk
 from pdbwidget import PDBWidget
+from pageddatasource import PagedDataSource
 
 class PDBContents(PDBWidget):
     __gsignals__ = dict(chapter_selected=(gobject.SIGNAL_RUN_FIRST,
@@ -46,28 +47,6 @@ class PDBContents(PDBWidget):
 
     def set_pdb(self, pdb):
         super(PDBContents, self).set_pdb( pdb )
-        self.current_page = 0
-
-    def __pagination(self, columns_in_page ):
-        self.pages=[]
-        page_len = len(self.pdb.contents)/columns_in_page+1
-        for i in range(page_len):
-            self.pages.append( 
-                    self.pdb.contents[columns_in_page*i:columns_in_page*(i+1)])
-        self.current_page=0
-
-    def __go_previous(self):
-        self.current_page=self.current_page-1
-        if self.current_page<0:
-            self.current_page=0
-
-    def __go_next(self):
-        self.current_page=self.current_page+1
-        if self.current_page>=len(self.pages):
-            self.current_page=len(self.pages)-1
-
-    def __get_current_page(self):
-        return self.pages[self.current_page]
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -93,7 +72,7 @@ class PDBContents(PDBWidget):
             self.y_pos_list=range(0, rect.height, (rect.height-1) )
             self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
             columns_in_page=len( self.x_pos_list )-1
-            self.__pagination(columns_in_page)
+            self.datasource = PagedDataSource( self.pdb.contents, columns_in_page )
             self.old_rect=rect
             self.recalc=False
 
@@ -122,7 +101,7 @@ class PDBContents(PDBWidget):
         start_y = 0
         columns_in_page=len( self.x_pos_list )
         try:
-            for chapter_title in self.__get_current_page():
+            for chapter_title in self.datasource.get_current_page():
                 x = self.x_pos_list[ start_x ] + cell_width/4
                 y = self.y_pos_list[ start_y ] + cell_height
                 for c in chapter_title:
@@ -137,7 +116,7 @@ class PDBContents(PDBWidget):
         except IndexError, e:
             print e
             print start_x, len(self.x_pos_list), columns_in_page, \
-    len(self.__get_current_page())
+    len(self.datasource.get_current_page())
         cx.restore()
 
         return False
@@ -147,9 +126,9 @@ class PDBContents(PDBWidget):
             return False
 
         if event.direction==gtk.gdk.SCROLL_UP:
-            self.__go_previous()
+            self.datasource.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
-            self.__go_next()
+            self.datasource.go_next()
         self.redraw_later()
         return True
 
@@ -170,13 +149,13 @@ class PDBContents(PDBWidget):
         if not self.pdb:
             return False
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
-            self.__go_previous()
+            self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
-            self.__go_next()
+            self.datasource.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
-            self.__go_previous()
+            self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
-            self.__go_next()
+            self.datasource.go_next()
         self.redraw_later()
         return False
 
@@ -186,8 +165,8 @@ class PDBContents(PDBWidget):
             if r.point_in( int(x), int(y) ):
                 break
             selected=selected+1
-        if self.current_page>0:
-            for page in self.pages[:self.current_page]:
+        if self.datasource.current_page>0:
+            for page in self.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
         chapter = selected
         if chapter>=self.pdb.chapters:
