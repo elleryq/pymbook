@@ -22,33 +22,7 @@ import gobject
 import gtk
 from pdbwidget import PDBWidget
 from utils import find_pdbs
-
-class PagedDataSource(object):
-    def __init__(self, source, columns_in_page ):
-        self.source = source
-        self.columns_in_page = columns_in_page
-        self.__pagination()
-
-    def __pagination(self):
-        self.pages=[]
-        page_len = len(self.source)/self.columns_in_page+1
-        for i in range(page_len):
-            self.pages.append( 
-                    self.source[self.columns_in_page*i:self.columns_in_page*(i+1)])
-        self.current_page=0
-
-    def go_previous(self):
-        self.current_page=self.current_page-1
-        if self.current_page<0:
-            self.current_page=0
-
-    def go_next(self):
-        self.current_page=self.current_page+1
-        if self.current_page>=len(self.pages):
-            self.current_page=len(self.pages)-1
-
-    def get_current_page(self):
-        return self.pages[self.current_page]
+from pageddatasource import PagedDataSource
 
 class BookshelfWidget(gtk.DrawingArea):
     __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
