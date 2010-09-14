@@ -23,28 +23,28 @@ import gtk
 from pdbwidget import PDBWidget
 
 class TextPager:
-    def __init__(self, pdb, width, height):
+    def __init__(self, pdb, columns_in_page, glyphs_in_column):
         self.current=0
         self.pages=[]
         for num in range(pdb.chapters):
             content = pdb.chapter(num)
             columns=0
-            words=0
+            glyphs=0
             page=[]
             num_in_chapter=0
             for c in content:
-                if c==u'\u000a' or words>=height:
+                if c==u'\u000a' or glyphs>=glyphs_in_column:
                     columns=columns+1
-                    words=0
+                    glyphs=0
                 if c!='\u000d' and c!='\u000a':
-                    words=words+1
+                    glyphs=glyphs+1
                 page.append( c )
-                if columns>=width:
+                if columns>=columns_in_page:
                     self.pages.append( (num, num_in_chapter, page) )
                     num_in_chapter=num_in_chapter+1
                     page=[]
                     columns=0
-                    words=0
+                    glyphs=0
             self.pages.append( (num, num_in_chapter, page) )
 
     def get_current_page(self):
@@ -128,8 +128,8 @@ class PDBCanvas(PDBWidget):
             self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
             self.y_pos_list=range(cell_height, rect.height-cell_height, cell_height)
             columns_in_page=len( self.x_pos_list )
-            words_in_line=len(self.y_pos_list)
-            self.pager=TextPager(self.pdb, columns_in_page, words_in_line)
+            glyphs_in_column=len(self.y_pos_list)
+            self.pager=TextPager(self.pdb, columns_in_page, glyphs_in_column)
             self.pager.go_chapter(self.chapter)
             self.old_rect=rect
             self.recalc=False
