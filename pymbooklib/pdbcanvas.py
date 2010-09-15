@@ -124,12 +124,12 @@ class PDBCanvas(PDBWidget):
         self.chapter=chapter
         self.recalc=True
 
-    def __draw_chapter_indicator(self, cx, x, seg):
+    def __draw_chapter_indicator(self, cx, x, y, seg):
         """draw chapter indicator"""
         cx.save()
         cx.set_source_rgb( 1.0, 0, 0 )
-        cx.move_to( x, 0 )
-        cx.line_to( x+seg, 0 )
+        cx.move_to( x, y )
+        cx.line_to( x+seg, y )
         cx.stroke()
         cx.restore()
 
@@ -173,7 +173,7 @@ class PDBCanvas(PDBWidget):
             self.recalc=False
 
         x = rect.width-(self.pager.get_current_chapter()+1)*self.chapter_seg
-        self.__draw_chapter_indicator( cx, x, self.chapter_seg )
+        self.__draw_chapter_indicator( cx, x, 0, self.chapter_seg )
 
         seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_chapter())
         x = rect.width-(self.pager.get_current_page_in_chapter()+1)*seg
