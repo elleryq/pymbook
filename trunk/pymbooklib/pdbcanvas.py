@@ -79,10 +79,8 @@ class TextPager:
                     page.append( column )
                     column = []
                     glyphs=0
-                    if c!=u'\u000a':
-                        column.append( c )
-                        glyphs = 1
-                    continue
+                    if c==u'\u000a':
+                        continue
                 if c==u'\u3000': # replace
                     c = u' '
                 column.append( c )
