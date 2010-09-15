@@ -151,12 +151,12 @@ class PDBCanvas(PDBWidget):
             self.pager=TextPager(self.pdb, columns_in_page, glyphs_in_column)
             self.pager.go_chapter(self.chapter)
             self.old_rect=rect
-            self.seg = rect.width/self.pdb.chapters
+            self.chapter_seg = rect.width/self.pdb.chapters
             self.recalc=False
 
         # draw chapter indicator
-        x = rect.width-(self.pager.get_current_chapter()+1)*self.seg
-        self.__draw_chapter_indicator( cx, x, self.seg )
+        x = rect.width-(self.pager.get_current_chapter()+1)*self.chapter_seg
+        self.__draw_chapter_indicator( cx, x, self.chapter_seg )
 
         # draw page/chapter indicator
         cx.save()
