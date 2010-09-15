@@ -60,22 +60,22 @@ class TextPager:
         self.pages=[]
         for num in range(pdb.chapters):
             content = pdb.chapter(num)
-            columns=0
+            column_count=0
             glyphs=0
             page=[]
             num_in_chapter=0
             for c in content:
                 if c==u'\u000a' or glyphs>=glyphs_in_column:
-                    columns=columns+1
+                    column_count=column_count+1
                     glyphs=0
                 if c!='\u000d' and c!='\u000a':
                     glyphs=glyphs+1
                 page.append( c )
-                if columns>=columns_in_page:
+                if column_count>=columns_in_page:
                     self.pages.append( (num, num_in_chapter, page) )
                     num_in_chapter=num_in_chapter+1
                     page=[]
-                    columns=0
+                    column_count=0
                     glyphs=0
             self.pages.append( (num, num_in_chapter, page) )
 
