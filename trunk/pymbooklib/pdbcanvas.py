@@ -25,38 +25,46 @@ from pageddatasource import PagedDataSource
 
 class TextPager:
     def __init__(self, pdb, columns_in_page, glyphs_in_column):
-        self.current=0
-        self.pages=[]
-        for num in range(pdb.chapters):
-            content = pdb.chapter(num)
-            column = []
-            column_count = 0
-            glyphs = 0
-            page = []
-            num_in_chapter=0
-            for c in content:
-                if column_count>=columns_in_page:
-                    self.pages.append( (num, num_in_chapter, page) )
-                    num_in_chapter=num_in_chapter+1
-                    page=[]
-                    column_count=0
-                    glyphs=0
-                if c==u'\u000d':
-                    continue
-                elif c==u'\u000a' or glyphs>=glyphs_in_column:
-                    column_count = column_count + 1
-                    page.append( column )
-                    column = []
-                    glyphs=0
-                    if c==u'\u000a':
-                        continue
-                if c==u'\u3000': # replace
-                    c = u' '
-                column.append( c )
-                glyphs = glyphs + 1
-            if len(column)>0:
+        self.current = 0
+        self.pages = []
+        for chapter_num in range(pdb.chapters):
+            content = pdb.chapter(chapter_num)
+            self.pages.extend( 
+                    self.__split_string_to_pages( 
+                        chapter_num, content, 
+                        columns_in_page, glyphs_in_column ) )
+
+    def __split_string_to_pages(self, chapter_num, s, columns_in_page, glyphs_in_column):
+        pages = []
+        column = []
+        column_count = 0
+        glyphs = 0
+        page = []
+        num_in_chapter=0
+        for c in s:
+            if column_count>=columns_in_page:
+                pages.append( (chapter_num, num_in_chapter, page) )
+                num_in_chapter=num_in_chapter+1
+                page=[]
+                column_count=0
+                glyphs=0
+            if c==u'\u000d':
+                continue
+            elif c==u'\u000a' or glyphs>=glyphs_in_column:
+                column_count = column_count + 1
                 page.append( column )
-            self.pages.append( (num, num_in_chapter, page) )
+                column = []
+                glyphs=0
+                if c==u'\u000a':
+                    continue
+            if c==u'\u3000': # replace
+                c = u' '
+            column.append( c )
+            glyphs = glyphs + 1
+        if len(column)>0:
+            page.append( column )
+        pages.append( (chapter_num, num_in_chapter, page) )
+        return pages
 
     def get_current_page(self):
         return self.pages[self.current][2]
