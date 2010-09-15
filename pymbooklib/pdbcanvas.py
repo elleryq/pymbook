@@ -30,11 +30,11 @@ class TextPager:
         for chapter_num in range(pdb.chapters):
             content = pdb.chapter(chapter_num)
             self.pages.extend( 
-                    self.__split_string_to_pages( 
+                    self.__split_to_pages( 
                         chapter_num, content, 
                         columns_in_page, glyphs_in_column ) )
 
-    def __split_string_to_pages(self, chapter_num, s, columns_in_page, glyphs_in_column):
+    def __split_to_pages(self, chapter_num, s, columns_in_page, glyphs_in_column):
         pages = []
         column = []
         column_count = 0
