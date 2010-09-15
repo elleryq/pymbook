@@ -60,23 +60,35 @@ class TextPager:
         self.pages=[]
         for num in range(pdb.chapters):
             content = pdb.chapter(num)
-            column_count=0
-            glyphs=0
-            page=[]
+            column = []
+            column_count = 0
+            glyphs = 0
+            page = []
             num_in_chapter=0
             for c in content:
-                if c==u'\u000a' or glyphs>=glyphs_in_column:
-                    column_count=column_count+1
-                    glyphs=0
-                if c!='\u000d' and c!='\u000a':
-                    glyphs=glyphs+1
-                page.append( c )
                 if column_count>=columns_in_page:
                     self.pages.append( (num, num_in_chapter, page) )
                     num_in_chapter=num_in_chapter+1
                     page=[]
                     column_count=0
                     glyphs=0
+                if c==u'\u000d':
+                    continue
+                elif c==u'\u000a' or glyphs>=glyphs_in_column:
+                    column_count = column_count + 1
+                    page.append( column )
+                    column = []
+                    glyphs=0
+                    if c!=u'\u000a':
+                        column.append( c )
+                        glyphs = 1
+                    continue
+                if c==u'\u3000': # replace
+                    c = u' '
+                column.append( c )
+                glyphs = glyphs + 1
+            if len(column)>0:
+                page.append( column )
             self.pages.append( (num, num_in_chapter, page) )
 
     def get_current_page(self):
@@ -165,7 +177,6 @@ class PDBCanvas(PDBWidget):
             self.pager.go_chapter(self.chapter)
             self.old_rect=rect
             self.recalc=False
-        s=self.pager.get_current_page()
 
         # draw chapter indicator
         cx.save()
@@ -192,20 +203,20 @@ class PDBCanvas(PDBWidget):
         cx.set_source_rgb( 0, 0, 0 )
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
-        pos=0
+        page = self.pager.get_current_page()
+        col = 0
         for x in self.x_pos_list:
+            if col>=len(page):
+                break
+            column = page[col]
+            pos = 0
             for y in self.y_pos_list:
-                if pos>=len(s):
+                if pos>=len(column):
                     break
-                if s[pos]==u'\u000d': # skip 0x0d0x0a
-                    pos=pos+2
-                    break
-                elif s[pos]==u'\u3000':
-                    pos=pos+1
-                    continue
                 cx.move_to( x, y )
-                cx.show_text( s[pos] )
-                pos=pos+1
+                cx.show_text( column[pos] )
+                pos = pos+1
+            col = col+1
         
         cx.restore()
 
