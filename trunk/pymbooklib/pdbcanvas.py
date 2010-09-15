@@ -23,37 +23,6 @@ import gtk
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
 
-class NewTextPager:
-    def __init__(self, pdb, columns_in_page, glyphs_in_column):
-        self.current = 0
-        self.datasource = PagedDataSource( self.format2columns( pdb,
-                    glyphs_in_column ) )
-
-    def format2columns(self, pdb, glyphs_in_column):
-        columns = []
-        for chap_num in range(pdb.chapters):
-            content = pdb.chapter(chap_num)
-            column = []
-            for c in content:
-                if c==u'\u000a' or glyphs>=glyphs_in_column:
-                    columns.append( column )
-                    column = []
-                    glyphs = 0
-                if c!='\u000d' and c!='\u000a':
-                    glyphs = glyphs+1
-                column.append( c )
-        return columns
-
-    def get_current_page(self):
-        """Return a list contain columns."""
-        return self.datasource.get_current_page()
-
-    def get_current_page_in_chapter(self):
-        pass
-
-    def get_current_chapter(self):
-        pass
-
 class TextPager:
     def __init__(self, pdb, columns_in_page, glyphs_in_column):
         self.current=0
