@@ -163,13 +163,15 @@ class PDBCanvas(PDBWidget):
             self.recalc=False
 
         # draw chapter indicator
-        x = rect.width-(self.pager.get_current_chapter()+1)*self.chapter_seg
-        self.__draw_indicator( cx, x, 0, self.chapter_seg )
+        if self.pdb.chapters>1:
+            x = rect.width-(self.pager.get_current_chapter()+1)*self.chapter_seg
+            self.__draw_indicator( cx, x, 0, self.chapter_seg )
 
         # draw page in chapter indicator
-        seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_chapter())
-        x = rect.width-(self.pager.get_current_page_in_chapter()+1)*seg
-        self.__draw_indicator( cx, x, rect.height-1, seg )
+        if self.pager.count_pages()>1:
+            seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_chapter())
+            x = rect.width-(self.pager.get_current_page_in_chapter()+1)*seg
+            self.__draw_indicator( cx, x, rect.height-1, seg )
 
         # draw text
         cx.save()
