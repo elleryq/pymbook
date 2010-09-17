@@ -48,6 +48,14 @@ class PDBContents(PDBWidget):
     def set_pdb(self, pdb):
         super(PDBContents, self).set_pdb( pdb )
 
+    def __draw_indicator(self, cx, x, y, seg):
+        cx.save()
+        cx.set_source_rgb( 1.0, 0, 0 )
+        cx.move_to( x, y )
+        cx.line_to( x+seg, y )
+        cx.stroke()
+        cx.restore()
+
     def expose(self, widget, event):
         if not self.pdb:
             return False
@@ -69,7 +77,7 @@ class PDBContents(PDBWidget):
 
         if self.recalc:
             self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-            self.y_pos_list=range(0, rect.height, (rect.height-1) )
+            self.y_pos_list=range(10, rect.height-10, (rect.height-21) )
             self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
             columns_in_page=len( self.x_pos_list )-1
             self.datasource = PagedDataSource( self.pdb.contents, columns_in_page )
@@ -91,9 +99,14 @@ class PDBContents(PDBWidget):
             cx.stroke()
             cx.restore()
 
+        # draw page indicator
+        if self.datasource.count_pages()>1:
+            seg = rect.width/self.datasource.count_pages()
+            x = rect.width-(self.datasource.current_page+1)*seg
+            self.__draw_indicator( cx, x, rect.height-1, seg )
+
         # Show contents
         # TODO: Show book name.
-        # TODO: Indicate previous/next pages.
         cx.save()
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
