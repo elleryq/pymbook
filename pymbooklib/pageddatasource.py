@@ -46,3 +46,5 @@ class PagedDataSource(object):
     def get_current_page(self):
         return self.pages[self.current_page]
 
+    def count_pages(self):
+        return len(self.pages)
