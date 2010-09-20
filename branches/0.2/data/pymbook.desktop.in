@@ -1,0 +1,10 @@
+[Desktop Entry]
+_Name=pymbook
+_Comment=Reader for Haodoo
+TryExec=pymbook
+Exec=pymbook
+Icon=pymbook
+Type=Application
+Categories=GNOME;GTK;Utility;
+StartupNotify=true
+X-Ubuntu-Gettext-Domain=pymbook
