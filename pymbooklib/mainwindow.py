@@ -48,54 +48,72 @@ class State( object ):
     def leave(self):
         return self
 
+    def __repr__(self):
+        return "State"
+
 class ShelfState( State ):
     def __init__(self, window):
         super(ShelfState, self).__init__(window)
 
     def enter(self):
-        super(ShelfState, self).enter()
         self.window.btn_shelf.set_sensitive( True )
         self.window.btn_content.set_sensitive( False )
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(SHELF_TAB)
+        return super(ShelfState, self).enter()
+
+    def __repr__(self):
+        return "ShelfState"
 
 class ShelfCanBackState( ShelfState ):
     def __init__(self, window):
         super(ShelfCanBackState, self).__init__(window)
 
     def enter(self):
-        super(ShelfCanBackState, self).enter()
         self.window.btn_return.set_sensitive( True )
+        return super(ShelfCanBackState, self).enter()
+
+    def __repr__(self):
+        return "ShelfCanBackState"
 
 class ContentState( State ):
     def __init__(self, window):
         super(ContentState, self).__init__(window)
 
     def enter(self):
-        super(ContentState, self).enter()
         self.window.btn_shelf.set_sensitive( True )
         self.window.btn_content.set_sensitive( False )
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(CONTENT_TAB)
+        return super(ContentState, self).enter()
+
+    def __repr__(self):
+        return "ContentState"
 
 class ContentCanBackState( ContentState ):
     def __init__(self, window):
         super(ContentCanBackState, self).__init__(window)
 
     def enter(self):
-        super(ContentCanBackState, self).enter()
         self.window.btn_return.set_sensitive( True )
+        return super(ContentCanBackState, self).enter()
+
+    def __repr__(self):
+        return "ContentCanBackState"
 
 class ReadingState( State ):
     def __init__(self, window):
         super(ReadingState, self).__init__(window)
 
     def enter(self):
-        super(ReadingState, self).enter()
         self.window.btn_shelf.set_sensitive( True )
         self.window.btn_content.set_sensitive( True )
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(CONTEXT_TAB)
+        return super(ReadingState, self).enter()
+
+    def __repr__(self):
+        return "ReadingState"
 
 class MainWindow:
     ENTRY_SHELF_PATH = "bookshelf_path"
@@ -104,6 +122,8 @@ class MainWindow:
     ENTRY_FONT_NAME = "font_name"
     ENTRY_FONT_SIZE = "font_size"
     ENTRY_CURRENT_PDB = "current_pdb"
+    ENTRY_CURRENT_CHAPTER = "current_chapter"
+    ENTRY_CURRENT_PAGE = "current_page"
     DEFAULT_FONT_NAME = "文泉驛微米黑"
     DEFAULT_FONT_SIZE = 16
     DEFAULT_WIDTH = 640
@@ -209,10 +229,21 @@ class MainWindow:
         self.pdb_canvas=PDBCanvas()
         frame=gtk.Frame()
         self.pdb_canvas.set_font( font )
-        frame.show()
         frame.add(self.pdb_canvas)
         label = gtk.Label(_("Text"))
         self.notebook.append_page(frame, label)
+
+        enter_reading_state = False
+        if self.config.has_option(self.SECTION, self.ENTRY_CURRENT_CHAPTER):
+            self.pdb_canvas.set_chapter(
+                self.config.getint( self.SECTION, self.ENTRY_CURRENT_CHAPTER) )
+            enter_reading_state = True
+        if self.config.has_option(self.SECTION, self.ENTRY_CURRENT_PAGE ):
+            self.pdb_canvas.set_page(
+                self.config.getint( self.SECTION, self.ENTRY_CURRENT_PAGE) )
+            enter_reading_state = True
+
+        frame.show()
         self.pdb_canvas.show()
 
         filename = None
@@ -220,13 +251,17 @@ class MainWindow:
             filename = self.config.get( self.SECTION, self.ENTRY_CURRENT_PDB )
         if filename and len(filename) and self.open_pdb( filename ):
             self.pdb_filename = filename
-            self.state = ContentState(self).enter()
+            if enter_reading_state:
+                self.state = ReadingState(self).enter()
+            else:
+                self.state = ContentState(self).enter()
         else:
             self.state = ShelfState(self).enter()
 
         # connect signals
         self.bookshelf.connect("book_selected", self.bookshelf_book_selected_cb )
         self.pdb_contents.connect("chapter_selected", self.pdb_contents_chapter_selected_cb)
+        self.pdb_canvas.connect("tell_callback", self.pdb_canvas_tell_callback )
 
     	self.builder.connect_signals(self)
     	self.window.show()
@@ -409,3 +444,8 @@ class MainWindow:
         if self.open_pdb( pdb_filename ):
             self.pdb_filename = pdb_filename
             self.state = ContentState(self).enter()
+
+    def pdb_canvas_tell_callback(self, widget, chapter, page):
+        self.config.set( self.SECTION, self.ENTRY_CURRENT_CHAPTER, chapter )
+        self.config.set( self.SECTION, self.ENTRY_CURRENT_PAGE, page )
+        self.save_config()
