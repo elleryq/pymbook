@@ -100,6 +100,10 @@ class TextPager:
             self.current=len(self.pages)-1
 
 class PDBCanvas(PDBWidget):
+    __gsignals__ = dict(tell_callback=(gobject.SIGNAL_RUN_FIRST,
+                                      gobject.TYPE_NONE,
+                                      (gobject.TYPE_INT, gobject.TYPE_INT)))
+
     def __init__(self):
         super(PDBCanvas, self).__init__()
         self.old_rect=None
@@ -117,12 +121,16 @@ class PDBCanvas(PDBWidget):
 
     def set_pdb(self, pdb):
         super(PDBCanvas, self).set_pdb( pdb )
-        self.page=0
         self.chapter=0
 
     def set_chapter(self, chapter):
         self.chapter=chapter
         self.recalc=True
+
+    def set_page(self, page):
+        self.page=page
+        self.recalc=True
+        self.redraw_later()
 
     def __draw_indicator(self, cx, x, y, seg):
         cx.save()
@@ -158,9 +166,14 @@ class PDBCanvas(PDBWidget):
             glyphs_in_column=len(self.y_pos_list)
             self.pager=TextPager(self.pdb, columns_in_page, glyphs_in_column)
             self.pager.go_chapter(self.chapter)
+            if self.page:
+                self.pager.current=self.page
             self.old_rect=rect
             self.chapter_seg = rect.width/self.pdb.chapters
             self.recalc=False
+
+        # TODO: Is here a better place?
+        self.__tell()
 
         # draw chapter indicator
         if self.pdb.chapters>1:
@@ -196,6 +209,9 @@ class PDBCanvas(PDBWidget):
         cx.restore()
 
         return False
+
+    def __tell(self):
+        self.emit("tell_callback", self.chapter, self.pager.current)
 
     def scroll_event(self, widget, event):
         if not self.pdb:
