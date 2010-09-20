@@ -58,6 +58,14 @@ class BookshelfWidget(gtk.DrawingArea):
             self.window.invalidate_rect(rect, True)
             self.window.process_updates(True)
 
+    def __draw_indicator(self, cx, x, y, seg):
+        cx.save()
+        cx.set_source_rgb( 1.0, 0, 0 )
+        cx.move_to( x, y )
+        cx.line_to( x+seg, y )
+        cx.stroke()
+        cx.restore()
+
     def expose(self, widget, event):
         if not self.books:
             return False
@@ -101,8 +109,13 @@ class BookshelfWidget(gtk.DrawingArea):
             cx.stroke()
             cx.restore()
 
+        # draw page indicator
+        if self.datasource.count_pages()>1:
+            seg = rect.width/self.datasource.count_pages()
+            x = rect.width-(self.datasource.current_page+1)*seg
+            self.__draw_indicator( cx, x, rect.height-1, seg )
+
         # Show shelf
-        # TODO: Indicate previous/next pages.
         cx.save()
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
