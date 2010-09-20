@@ -154,7 +154,11 @@ class MainWindow:
     	self.window = self.builder.get_object("window1")
         self.window.set_title( APP_NAME )
         self.window.set_position( gtk.WIN_POS_CENTER )
-        self.window.set_size_request(
+        # set minimal size
+        self.window.set_size_request( 
+                self.DEFAULT_WIDTH, self.DEFAULT_HEIGHT )
+        # resize to saved size
+        self.window.resize(
                 self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
                 self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
 

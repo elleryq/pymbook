@@ -6,4 +6,3 @@
  * Refactoring pdbcanvas/pdbcontents/bookshelf.
  * Test pymbook.spec in Fedora RPM package manager.
  * Show "Loading".
- * Fix: Cannot resize to smaller.
