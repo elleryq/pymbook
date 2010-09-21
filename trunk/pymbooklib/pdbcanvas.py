@@ -111,6 +111,7 @@ class PDBCanvas(PDBWidget):
         self.recalc=True
         self.pdb=None
         self.chapter=0
+        self.page=0
 
         self.add_events(gtk.gdk.SCROLL_MASK |
                         gtk.gdk.KEY_PRESS_MASK )
