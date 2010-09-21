@@ -126,18 +126,27 @@ class Uninstall(Command):
 
 class InstallData(install_data):
   def run (self):
+    self._update_desktop_prefix()
     self.data_files.extend (self._find_mo_files ())
     install_data.run (self)
     #if not self.distribution.without_icon_cache:
-    #  self._update_icon_cache ()
+    self._update_icon_cache ()
 
   # We should do this on uninstall too
   def _update_icon_cache(self):
     info("running gtk-update-icon-cache")
     try:
-      subprocess.call(["gtk-update-icon-cache", "-q", "-f", "-t", os.path.join(self.install_dir, "share/icons/hicolor")])
+      subprocess.call(["gtk-update-icon-cache", "-q", "-f", "-t",
+              os.path.join(self.install_dir, "share/pixmaps")])
     except Exception, e:
       warn("updating the GTK icon cache failed: %s" % str(e))
+
+  def _update_desktop_prefix(self):
+    #desktop_data=os.path.join( self.install_dir, 'share', 'pixmaps', 'pymbook.desktop' )
+    desktop_data='data/pymbook.desktop'
+    os.system ("C_ALL=C sed -i -e 's/%prefix%/" +
+            self.install_dir.replace( '/', '\\/' ) + "/g' " + 
+            desktop_data )
 
   def _find_mo_files (self):
     data_files = []
