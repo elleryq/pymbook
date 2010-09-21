@@ -153,7 +153,7 @@ class InstallData(install_data):
 
 setup(name=APP_NAME.capitalize(),
       version=APP_VERSION,
-      description='pymbook, the robot future of terminals',
+      description='pymbook, the reader for http://www.haodoo.net',
       author='Yan-ren Tsai',
       author_email='elleryq@gmail.com',
       url='http://code.google.com/p/pymbook/',
@@ -161,11 +161,20 @@ setup(name=APP_NAME.capitalize(),
       scripts=['pymbook'],
       data_files=[
                   ('share/applications', ['data/pymbook.desktop']),
-                  ('share/pixmaps', ['data/logo.png']),
+                  ('share/pixmaps', ['data/haodoo_logo.png']),
                  ],
       packages=['pymbooklib',],
-      package_data={'pymbooklib': ['main_window.glade', 'preference_dialog.glade', 'logo.png']},
-      cmdclass={'build': BuildData, 'install_data': InstallData, 'uninstall': Uninstall},
+      package_data={'pymbooklib': 
+        [
+          'main_window.glade', 'preference_dialog.glade', 
+          'haodoo_logo.png'
+        ]
+      },
+      cmdclass={
+        'build': BuildData, 
+        'install_data': InstallData, 
+        'uninstall': Uninstall
+      },
       distclass=pymbookDist
      )
 
