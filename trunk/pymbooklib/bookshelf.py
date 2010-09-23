@@ -58,11 +58,24 @@ class BookshelfWidget(gtk.DrawingArea):
             self.window.invalidate_rect(rect, True)
             self.window.process_updates(True)
 
-    def __draw_indicator(self, cx, x, y, seg):
+    def _draw_indicator(self, cx, x, y, seg):
         cx.save()
         cx.set_source_rgb( 1.0, 0, 0 )
         cx.move_to( x, y )
         cx.line_to( x+seg, y )
+        cx.stroke()
+        cx.restore()
+
+    def _draw_line(self, cx, pos1, pos2):
+        """
+        Draw line.
+        pos1 and pos2 are tutple contain x and y.
+        """
+        x1, y1 = pos1
+        x2, y2 = pos2
+        cx.save()
+        cx.move_to( x1, y1 )
+        cx.line_to( x2, y2 )
         cx.stroke()
         cx.restore()
 
@@ -97,28 +110,23 @@ class BookshelfWidget(gtk.DrawingArea):
         # draw grid
         cx.set_source_rgb( 0, 0, 0 )
         for x in self.x_pos_list:
-            cx.save()
-            cx.move_to( x, self.y_pos_list[0] )
-            cx.line_to( x, self.y_pos_list[-1] )
-            cx.stroke()
-            cx.restore()
+            self._draw_line( cx, (x, self.y_pos_list[0]),
+                    (x, self.y_pos_list[-1]) )
         for y in self.y_pos_list:
-            cx.save()
-            cx.move_to( self.x_pos_list[0], y )
-            cx.line_to( self.x_pos_list[-1], y )
-            cx.stroke()
-            cx.restore()
+            self._draw_line( cx, (self.x_pos_list[0], y),
+                    (self.x_pos_list[-1], y) )
 
         # draw page indicator
         if self.datasource.count_pages()>1:
             seg = rect.width/self.datasource.count_pages()
             x = rect.width-(self.datasource.current_page+1)*seg
-            self.__draw_indicator( cx, x, rect.height-1, seg )
+            self._draw_indicator( cx, x, rect.height-1, seg )
 
         # Show shelf
         cx.save()
-        cx.select_font_face( self.font_name )
-        cx.set_font_size( self.font_size)
+        if self.font_name and self.font_size:
+            cx.select_font_face( self.font_name )
+            cx.set_font_size( self.font_size)
         start_x = 1
         start_y = 0
         columns_in_page=len( self.x_pos_list )
