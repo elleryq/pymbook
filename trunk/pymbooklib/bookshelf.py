@@ -17,7 +17,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
-"""PDBContents"""
+"""Bookshelf widget"""
 import gobject
 import gtk
 from utils import find_pdbs
