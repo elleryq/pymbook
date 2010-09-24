@@ -31,5 +31,5 @@ def find_pdbs( path ):
     return sorted( books )
 
 if __name__ == "__main__":
-    print __find_pdbs( "" )
+    print find_pdbs( "" )
 
