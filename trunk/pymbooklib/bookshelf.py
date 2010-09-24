@@ -20,7 +20,6 @@
 """PDBContents"""
 import gobject
 import gtk
-from pdbwidget import PDBWidget
 from utils import find_pdbs
 from pageddatasource import PagedDataSource
 
