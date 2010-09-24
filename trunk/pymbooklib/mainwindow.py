@@ -32,6 +32,7 @@ from pdbwidget import PDBWidget
 from pdbcontents import PDBContents
 from pdbcanvas import PDBCanvas
 from bookshelf import BookshelfWidget, find_pdbs
+import config
 from translation import _
 
 SHELF_TAB = 0
@@ -116,39 +117,13 @@ class ReadingState( State ):
         return "ReadingState"
 
 class MainWindow:
-    ENTRY_SHELF_PATH = "bookshelf_path"
-    ENTRY_WIDTH = "width"
-    ENTRY_HEIGHT = "height"
-    ENTRY_FONT_NAME = "font_name"
-    ENTRY_FONT_SIZE = "font_size"
-    ENTRY_CURRENT_PDB = "current_pdb"
-    ENTRY_CURRENT_CHAPTER = "current_chapter"
-    ENTRY_CURRENT_PAGE = "current_page"
-    DEFAULT_FONT_NAME = "文泉驛微米黑"
-    DEFAULT_FONT_SIZE = 16
-    DEFAULT_WIDTH = 640
-    DEFAULT_HEIGHT = 480
-    DEFAULT_SHELF_PATH = "~/download/"
-    DEFAULT_CONFIG_CONTENT = """
-[mbook]
-%s = %s
-%s = %d
-%s = %d
-%s = %s
-%s = %d
-""" % ( ENTRY_SHELF_PATH, DEFAULT_SHELF_PATH, 
-        ENTRY_WIDTH, DEFAULT_WIDTH, 
-        ENTRY_HEIGHT, DEFAULT_HEIGHT,
-        ENTRY_FONT_NAME, DEFAULT_FONT_NAME,
-        ENTRY_FONT_SIZE, DEFAULT_FONT_SIZE )
-    CONFIG_FILENAME = "~/.config/pymbook.conf"
-    SECTION = 'mbook'
-
+    """MainWindow"""
     def __init__(self, filename=None):
         self.pdb_filename = None
         self.pdb = None
         self.pref_dlg = None
-        self.load_config()
+        self.config = config.Config()
+        self.config.load()
     	self.initialize_component()
         if filename and self.open_pdb( filename ):
             self.pdb_filename = filename
@@ -176,11 +151,11 @@ class MainWindow:
         self.window.set_position( gtk.WIN_POS_CENTER )
         # set minimal size
         self.window.set_size_request( 
-                self.DEFAULT_WIDTH, self.DEFAULT_HEIGHT )
+                config.DEFAULT_WIDTH, config.DEFAULT_HEIGHT )
         # resize to saved size
         self.window.resize(
-                self.config.getint( self.SECTION, self.ENTRY_WIDTH ), 
-                self.config.getint( self.SECTION, self.ENTRY_HEIGHT ) )
+                self.config[config.ENTRY_WIDTH], 
+                self.config[config.ENTRY_HEIGHT] )
 
         self.btn_shelf = self.builder.get_object("btn_shelf")
         self.btn_content = self.builder.get_object("btn_content")
@@ -202,11 +177,11 @@ class MainWindow:
         menuitem_recent.set_submenu(menu_recent)
 
         font = "%s %d" % ( 
-                self.config.get( self.SECTION, self.ENTRY_FONT_NAME ),
-                self.config.getint( self.SECTION, self.ENTRY_FONT_SIZE ) )
+                self.config[config.ENTRY_FONT_NAME],
+                self.config[config.ENTRY_FONT_SIZE] )
 
         # Add bookshelf tab
-        self.bookshelf = BookshelfWidget( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH ) )
+        self.bookshelf = BookshelfWidget( self.config[config.ENTRY_SHELF_PATH] )
         self.bookshelf.set_font( font )
         frame=gtk.Frame()
         frame.show()
@@ -234,21 +209,21 @@ class MainWindow:
         self.notebook.append_page(frame, label)
 
         enter_reading_state = False
-        if self.config.has_option(self.SECTION, self.ENTRY_CURRENT_CHAPTER):
+        if self.config[config.ENTRY_CURRENT_CHAPTER]:
             self.pdb_canvas.set_chapter(
-                self.config.getint( self.SECTION, self.ENTRY_CURRENT_CHAPTER) )
+                self.config[config.ENTRY_CURRENT_CHAPTER] )
             enter_reading_state = True
-        if self.config.has_option(self.SECTION, self.ENTRY_CURRENT_PAGE ):
+        if self.config[config.ENTRY_CURRENT_PAGE]:
             self.pdb_canvas.set_page(
-                self.config.getint( self.SECTION, self.ENTRY_CURRENT_PAGE) )
+                self.config[config.ENTRY_CURRENT_PAGE] )
             enter_reading_state = True
 
         frame.show()
         self.pdb_canvas.show()
 
         filename = None
-        if self.config.has_option( self.SECTION, self.ENTRY_CURRENT_PDB ):
-            filename = self.config.get( self.SECTION, self.ENTRY_CURRENT_PDB )
+        if self.config[config.ENTRY_CURRENT_PDB]:
+            filename = self.config[config.ENTRY_CURRENT_PDB]
         if filename and len(filename) and self.open_pdb( filename ):
             self.pdb_filename = filename
             if enter_reading_state:
@@ -265,19 +240,6 @@ class MainWindow:
 
     	self.builder.connect_signals(self)
     	self.window.show()
-
-    def load_config(self):
-        import ConfigParser
-        import io
-        self.config = ConfigParser.RawConfigParser()
-        if os.path.exists( os.path.expanduser( self.CONFIG_FILENAME ) ):
-            self.config.readfp( open( os.path.expanduser( self.CONFIG_FILENAME ) ) )
-        else:
-            self.config.readfp( io.BytesIO(self.DEFAULT_CONFIG_CONTENT) )
-
-    def save_config(self):
-        import ConfigParser
-        self.config.write( open(os.path.expanduser( self.CONFIG_FILENAME ), "wt" ) )
 
     def open_pdb( self, pdb_filename ):
         import urlparse
@@ -306,11 +268,10 @@ class MainWindow:
 
     def leave(self):
         rect = self.window.get_allocation()
-        self.config.set( self.SECTION, self.ENTRY_WIDTH, rect.width )
-        self.config.set( self.SECTION, self.ENTRY_HEIGHT, rect.height )
-        self.config.set( self.SECTION, self.ENTRY_CURRENT_PDB,
-                    self.pdb_filename )
-        self.save_config()
+        self.config[config.ENTRY_WIDTH] = rect.width
+        self.config[config.ENTRY_HEIGHT] = rect.height
+        self.config[config.ENTRY_CURRENT_PDB] = self.pdb_filename
+        self.config.save()
     	gtk.main_quit()
 
     def window1_delete_event_cb(self, widget, event, data=None):
@@ -362,17 +323,17 @@ class MainWindow:
         dialog=gtk.FontSelectionDialog(_("Choose font"))
         dialog.set_default_response(gtk.RESPONSE_OK)
         dialog.set_font_name( "%s %d" % (
-                self.config.get( self.SECTION, self.ENTRY_FONT_NAME ),
-                self.config.getint( self.SECTION, self.ENTRY_FONT_SIZE ) ) )
+                self.config[config.ENTRY_FONT_NAME],
+                self.config[config.ENTRY_FONT_SIZE] ) )
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
             font_name=dialog.get_font_name()
             self.pdb_contents.set_font( font_name )
             self.pdb_canvas.set_font( font_name )
             font = font_name.split()
-            self.config.set( self.SECTION, self.ENTRY_FONT_NAME, font[0] )
-            self.config.set( self.SECTION, self.ENTRY_FONT_SIZE, font[-1] )
-            self.save_config()
+            self.config[config.ENTRY_FONT_NAME] = font[0]
+            self.config[config.ENTRY_FONT_SIZE] = font[-1]
+            self.config.save()
         dialog.destroy()
         self.pdb_contents.redraw_canvas()
         self.pdb_canvas.redraw_canvas()
@@ -391,7 +352,7 @@ class MainWindow:
             return
         pref_dlg = builder.get_object("dialog1")
         chooser_btn = builder.get_object("filechooserbutton1")
-        shelf_path=os.path.expanduser( self.config.get( self.SECTION, self.ENTRY_SHELF_PATH) ).encode( sys.getfilesystemencoding() )
+        shelf_path=os.path.expanduser( self.config[config.ENTRY_SHELF_PATH] ).encode( sys.getfilesystemencoding() )
         chooser_btn.set_current_folder( shelf_path )
 
         result=pref_dlg.run()
@@ -399,8 +360,8 @@ class MainWindow:
         if result==gtk.RESPONSE_OK:
             selected_path = chooser_btn.get_filename()
             if selected_path:
-                self.config.set( self.SECTION, self.ENTRY_SHELF_PATH, selected_path )
-                self.save_config()
+                self.config[config.ENTRY_SHELF_PATH] = selected_path
+                self.config.save()
         pref_dlg.destroy()
 
     def act_shelf_activate_cb( self, b ):
@@ -446,6 +407,6 @@ class MainWindow:
             self.state = ContentState(self).enter()
 
     def pdb_canvas_tell_callback(self, widget, chapter, page):
-        self.config.set( self.SECTION, self.ENTRY_CURRENT_CHAPTER, chapter )
-        self.config.set( self.SECTION, self.ENTRY_CURRENT_PAGE, page )
-        self.save_config()
+        self.config[config.ENTRY_CURRENT_CHAPTER] = chapter
+        self.config[config.ENTRY_CURRENT_PAGE] = page
+        self.config.save()
