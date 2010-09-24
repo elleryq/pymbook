@@ -19,11 +19,9 @@
 
 """PDBWidget"""
 import gtk
+from customdrawingarea import CustomDrawingArea
 
-class PDBWidget(gtk.DrawingArea):
-    font_name = '¤å¬uÅæ·L¦Ì¶Â'
-    font_size = 16
-
+class PDBWidget(CustomDrawingArea):
     def __init__(self):
         super(PDBWidget, self).__init__()
         self.set_flags( gtk.CAN_FOCUS )
@@ -31,25 +29,10 @@ class PDBWidget(gtk.DrawingArea):
         self.timer = None
 
     def set_font(self, font):
-        t=font.split(' ')
-        self.font_name = t[0]
-        self.font_size = int(t[-1])
+        super(PDBWidget, self).set_font(font)
         self.recalc = True
 
     def set_pdb(self, pdb):
         self.pdb = pdb
         self.recalc = True
-
-    def redraw_canvas(self):
-        if self.window:
-            alloc=self.get_allocation()
-            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-            self.window.invalidate_rect(rect, True)
-            self.window.process_updates(True)
-
-    def redraw_later(self):
-        import glib
-        if self.timer:
-            glib.source_remove( self.timer )
-        self.timer = glib.timeout_add( 500, self.redraw_canvas )
 
