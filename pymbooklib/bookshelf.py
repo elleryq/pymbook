@@ -21,9 +21,10 @@
 import gobject
 import gtk
 from utils import find_pdbs
+from customdrawingarea import CustomDrawingArea
 from pageddatasource import PagedDataSource
 
-class BookshelfWidget(gtk.DrawingArea):
+class BookshelfWidget(CustomDrawingArea):
     __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,
                                       (gobject.TYPE_INT,)))
@@ -34,49 +35,11 @@ class BookshelfWidget(gtk.DrawingArea):
         self.old_rect=None
         self.recalc=True
 
-        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
-                        gtk.gdk.BUTTON_RELEASE_MASK | 
-                        gtk.gdk.POINTER_MOTION_MASK |
-                        gtk.gdk.KEY_PRESS_MASK )
-
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
         self.connect("key-release-event", self.key_release )
-
-    def set_font(self, font):
-        t=font.split(' ')
-        self.font_name = t[0]
-        self.font_size = int(t[-1])
-
-    def redraw_canvas(self):
-        if self.window:
-            alloc=self.get_allocation()
-            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-            self.window.invalidate_rect(rect, True)
-            self.window.process_updates(True)
-
-    def _draw_indicator(self, cx, x, y, seg):
-        cx.save()
-        cx.set_source_rgb( 1.0, 0, 0 )
-        cx.move_to( x, y )
-        cx.line_to( x+seg, y )
-        cx.stroke()
-        cx.restore()
-
-    def _draw_line(self, cx, pos1, pos2):
-        """
-        Draw line.
-        pos1 and pos2 are tutple contain x and y.
-        """
-        x1, y1 = pos1
-        x2, y2 = pos2
-        cx.save()
-        cx.move_to( x1, y1 )
-        cx.line_to( x2, y2 )
-        cx.stroke()
-        cx.restore()
 
     def expose(self, widget, event):
         if not self.books:
@@ -148,12 +111,6 @@ class BookshelfWidget(gtk.DrawingArea):
         cx.restore()
 
         return False
-
-    def redraw_later(self):
-        import glib
-        if self.timer:
-            glib.source_remove( self.timer )
-        self.timer = glib.timeout_add( 500, self.redraw_canvas )
 
     def scroll_event(self, widget, event):
         if not self.books:
