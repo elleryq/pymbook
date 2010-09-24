@@ -113,9 +113,6 @@ class PDBCanvas(PDBWidget):
         self.chapter=0
         self.page=0
 
-        self.add_events(gtk.gdk.SCROLL_MASK |
-                        gtk.gdk.KEY_PRESS_MASK )
-
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("key-release-event", self.key_release )
@@ -132,14 +129,6 @@ class PDBCanvas(PDBWidget):
         self.page=page
         self.recalc=True
         self.redraw_later()
-
-    def __draw_indicator(self, cx, x, y, seg):
-        cx.save()
-        cx.set_source_rgb( 1.0, 0, 0 )
-        cx.move_to( x, y )
-        cx.line_to( x+seg, y )
-        cx.stroke()
-        cx.restore()
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -179,13 +168,13 @@ class PDBCanvas(PDBWidget):
         # draw chapter indicator
         if self.pdb.chapters>1:
             x = rect.width-(self.pager.get_current_chapter()+1)*self.chapter_seg
-            self.__draw_indicator( cx, x, 0, self.chapter_seg )
+            self._draw_indicator( cx, x, 0, self.chapter_seg )
 
         # draw page in chapter indicator
         if self.pager.count_pages()>1:
             seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_chapter())
             x = rect.width-(self.pager.get_current_page_in_chapter()+1)*seg
-            self.__draw_indicator( cx, x, rect.height-1, seg )
+            self._draw_indicator( cx, x, rect.height-1, seg )
 
         # draw text
         cx.save()
