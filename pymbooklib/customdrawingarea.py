@@ -23,6 +23,9 @@ import gtk
 
 class CustomDrawingArea(gtk.DrawingArea):
     """The base widget of BookshelfWidget, PDBContents and PDBCanvas."""
+    font_name = '¤å¬uÅæ·L¦Ì¶Â'
+    font_size = 16
+
     def __init__( self ):
         super(CustomDrawingArea, self).__init__()
 

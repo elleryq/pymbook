@@ -34,27 +34,11 @@ class PDBContents(PDBWidget):
         self.recalc=True
         self.pdb=None
 
-        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
-                        gtk.gdk.BUTTON_RELEASE_MASK | 
-                        gtk.gdk.POINTER_MOTION_MASK |
-                        gtk.gdk.KEY_PRESS_MASK )
-
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
         self.connect("key-release-event", self.key_release )
-
-    def set_pdb(self, pdb):
-        super(PDBContents, self).set_pdb( pdb )
-
-    def __draw_indicator(self, cx, x, y, seg):
-        cx.save()
-        cx.set_source_rgb( 1.0, 0, 0 )
-        cx.move_to( x, y )
-        cx.line_to( x+seg, y )
-        cx.stroke()
-        cx.restore()
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -87,23 +71,17 @@ class PDBContents(PDBWidget):
         # draw grid
         cx.set_source_rgb( 0, 0, 0 )
         for x in self.x_pos_list:
-            cx.save()
-            cx.move_to( x, self.y_pos_list[0] )
-            cx.line_to( x, self.y_pos_list[-1] )
-            cx.stroke()
-            cx.restore()
+            self._draw_line( cx, (x, self.y_pos_list[0]),
+                    (x, self.y_pos_list[-1]) )
         for y in self.y_pos_list:
-            cx.save()
-            cx.move_to( self.x_pos_list[0], y )
-            cx.line_to( self.x_pos_list[-1], y )
-            cx.stroke()
-            cx.restore()
+            self._draw_line( cx, (self.x_pos_list[0], y),
+                    (self.x_pos_list[-1], y) )
 
         # draw page indicator
         if self.datasource.count_pages()>1:
             seg = rect.width/self.datasource.count_pages()
             x = rect.width-(self.datasource.current_page+1)*seg
-            self.__draw_indicator( cx, x, rect.height-1, seg )
+            self._draw_indicator( cx, x, rect.height-1, seg )
 
         # Show contents
         # TODO: Show book name.
