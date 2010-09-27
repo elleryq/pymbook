@@ -33,6 +33,7 @@ from pdbcontents import PDBContents
 from pdbcanvas import PDBCanvas
 from bookshelf import BookshelfWidget, find_pdbs
 from translation import _
+from utils import get_font_tuple
 
 SHELF_TAB = 0
 CONTENT_TAB = 1
@@ -367,11 +368,12 @@ class MainWindow:
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
             font_name=dialog.get_font_name()
+            self.bookshelf.set_font( font_name )
             self.pdb_contents.set_font( font_name )
             self.pdb_canvas.set_font( font_name )
-            font = font_name.split()
-            self.config.set( self.SECTION, self.ENTRY_FONT_NAME, font[0] )
-            self.config.set( self.SECTION, self.ENTRY_FONT_SIZE, font[-1] )
+            font, font_size = get_font_tuple( font_name )
+            self.config.set( self.SECTION, self.ENTRY_FONT_NAME, font )
+            self.config.set( self.SECTION, self.ENTRY_FONT_SIZE, font_size )
             self.save_config()
         dialog.destroy()
         self.pdb_contents.redraw_canvas()

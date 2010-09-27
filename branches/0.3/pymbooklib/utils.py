@@ -30,6 +30,13 @@ def find_pdbs( path ):
     books = [ ( PDBFile( pdb_filename ).parse().book_name, pdb_filename ) for pdb_filename in pdbfiles ]
     return sorted( books )
 
+def get_font_tuple( font_name ):
+    import pango
+    fontdesc = pango.FontDescription( font_name )
+    font_name = fontdesc.get_family()
+    font_size = fontdesc.get_size()/pango.SCALE
+    return (font_name, font_size)
+
 if __name__ == "__main__":
     print find_pdbs( "" )
 
