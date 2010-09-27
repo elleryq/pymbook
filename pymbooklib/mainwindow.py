@@ -24,6 +24,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
+import pango
 
 import pdb
 import version
@@ -37,6 +38,7 @@ from state import ShelfState, ShelfCanBackState
 from state import ContentState, ContentCanBackState 
 from state import ReadingState
 from translation import _
+from utils import get_font_tuple
 
 class MainWindow:
     """MainWindow"""
@@ -57,7 +59,7 @@ class MainWindow:
             glade_file = os.path.join( os.path.dirname( version.__file__ ), 'main_window.glade' )
             self.builder.add_from_file( glade_file )
     	except BaseException, e:
-            print e
+            print( e )
             err_dialog = gtk.MessageDialog(
                     None, 
                     gtk.DIALOG_MODAL, 
@@ -250,11 +252,12 @@ class MainWindow:
         response=dialog.run()
         if response==gtk.RESPONSE_OK:
             font_name=dialog.get_font_name()
+            self.bookshelf.set_font( font_name )
             self.pdb_contents.set_font( font_name )
             self.pdb_canvas.set_font( font_name )
-            font = font_name.split()
-            self.config[config.ENTRY_FONT_NAME] = font[0]
-            self.config[config.ENTRY_FONT_SIZE] = font[-1]
+            font, font_size = get_font_tuple( font_name )
+            self.config[config.ENTRY_FONT_NAME] = font
+            self.config[config.ENTRY_FONT_SIZE] = font_size
             self.config.save()
         dialog.destroy()
         self.pdb_contents.redraw_canvas()
