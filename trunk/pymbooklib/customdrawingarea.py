@@ -20,6 +20,7 @@
 """Custom DrawingArea"""
 import gobject
 import gtk
+from utils import get_font_tuple
 
 class CustomDrawingArea(gtk.DrawingArea):
     """The base widget of BookshelfWidget, PDBContents and PDBCanvas."""
@@ -37,9 +38,7 @@ class CustomDrawingArea(gtk.DrawingArea):
                         gtk.gdk.SCROLL_MASK )
 
     def set_font(self, font):
-        t=font.split(' ')
-        self.font_name = t[0]
-        self.font_size = int(t[-1])
+        self.font_name, self.font_size = get_font_tuple( font )
 
     def redraw_canvas(self):
         if self.window:
