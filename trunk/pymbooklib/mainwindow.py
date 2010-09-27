@@ -24,7 +24,6 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
-import pango
 
 import pdb
 import version
