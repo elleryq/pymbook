@@ -58,6 +58,25 @@ class PDBCanvas(PDBWidget):
         self.recalc=True
         self.redraw_later()
 
+    def _recalc(self):
+        rect=self.get_allocation()
+        cell_width=self.font_size+self.font_size/4
+        cell_height=self.font_size+self.font_size/3
+
+        self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
+        self.y_pos_list=range(cell_height, rect.height-cell_height, cell_height)
+        columns_in_page=len( self.x_pos_list )
+        glyphs_in_column=len(self.y_pos_list)
+        self.source = convert_pdb_to_pages( self.pdb,
+                columns_in_page, glyphs_in_column ) 
+        self.datasource = PagedDataSource( self.source )
+        self.datasource.current_page = self._search_chapter( self.chapter )
+        if self.page:
+            self.datasource.current_page=self.page
+        self.old_rect=rect
+        self.chapter_seg = rect.width/self.pdb.chapters
+        self.recalc=False
+
     def expose(self, widget, event):
         if not self.pdb:
             return False
@@ -67,9 +86,6 @@ class PDBCanvas(PDBWidget):
         # get canvas size
         rect=self.get_allocation()
 
-        cell_width=self.font_size+self.font_size/4
-        cell_height=self.font_size+self.font_size/3
-
         # The first time.
         if not self.old_rect:
             self.recalc=True
@@ -78,19 +94,7 @@ class PDBCanvas(PDBWidget):
             self.recalc=True
 
         if self.recalc:
-            self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-            self.y_pos_list=range(cell_height, rect.height-cell_height, cell_height)
-            columns_in_page=len( self.x_pos_list )
-            glyphs_in_column=len(self.y_pos_list)
-            self.source = convert_pdb_to_pages( self.pdb,
-                    columns_in_page, glyphs_in_column ) 
-            self.datasource = PagedDataSource( self.source )
-            self.datasource.current_page = self._search_chapter( self.chapter )
-            if self.page:
-                self.datasource.current_page=self.page
-            self.old_rect=rect
-            self.chapter_seg = rect.width/self.pdb.chapters
-            self.recalc=False
+            self._recalc()
 
         # TODO: Is here a better place?
         self._tell()
