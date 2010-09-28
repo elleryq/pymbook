@@ -23,9 +23,9 @@ class PagedDataSource(object):
     def __init__(self, source, columns_in_page ):
         self.source = source
         self.columns_in_page = columns_in_page
-        self.__pagination()
+        self._pagination()
 
-    def __pagination(self):
+    def _pagination(self):
         self.pages=[]
         page_len = len(self.source)/self.columns_in_page+1
         for i in range(page_len):
