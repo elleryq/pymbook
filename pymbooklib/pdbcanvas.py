@@ -22,48 +22,7 @@ import gobject
 import gtk
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
-
-def convert_pdb_to_pages( pdb, columns_in_page, glyphs_in_column ):
-    def convert_text_to_pages( chapter_num, text, columns_in_page,
-            glyphs_in_column ):
-        pages = []
-        column = []
-        column_count = 0
-        glyphs = 0
-        page = []
-        num_in_chapter=0
-        for c in text:
-            if column_count>=columns_in_page:
-                pages.append( (chapter_num, num_in_chapter, page) )
-                num_in_chapter=num_in_chapter+1
-                page=[]
-                column_count=0
-                glyphs=0
-            if c==u'\u000d':
-                continue
-            elif c==u'\u000a' or glyphs>=glyphs_in_column:
-                column_count = column_count + 1
-                page.append( column )
-                column = []
-                glyphs=0
-                if c==u'\u000a':
-                    continue
-            if c==u'\u3000': # replace
-                c = u' '
-            column.append( c )
-            glyphs = glyphs + 1
-        if len(column)>0:
-            page.append( column )
-        pages.append( (chapter_num, num_in_chapter, page) )
-        return pages
-    pages = []
-    for chapter_num in range(pdb.chapters):
-        content = pdb.chapter(chapter_num)
-        pages.extend( 
-                convert_text_to_pages( 
-                    chapter_num, content, 
-                    columns_in_page, glyphs_in_column ) )
-    return pages
+from utils import convert_pdb_to_pages
 
 class TextPager:
     def __init__(self, pdb, columns_in_page, glyphs_in_column):
