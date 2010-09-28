@@ -22,6 +22,7 @@ import gobject
 import gtk
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
+from utils import convert_columns_to_pages
 
 class PDBContents(PDBWidget):
     __gsignals__ = dict(chapter_selected=(gobject.SIGNAL_RUN_FIRST,
@@ -64,7 +65,9 @@ class PDBContents(PDBWidget):
             self.y_pos_list=range(10, rect.height-10, (rect.height-21) )
             self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
             columns_in_page=len( self.x_pos_list )-1
-            self.datasource = PagedDataSource( self.pdb.contents, columns_in_page )
+            self.datasource = PagedDataSource( convert_columns_to_pages(
+                        self.pdb.contents, columns_in_page ) )
+
             self.old_rect=rect
             self.recalc=False
 

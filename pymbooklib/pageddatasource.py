@@ -19,17 +19,9 @@
 
 """PagedDataSource"""
 
-from utils import convert_columns_to_pages
-
 class PagedDataSource(object):
-    def __init__(self, source, columns_in_page ):
-        self.source = source
-        self.columns_in_page = columns_in_page
-        self._pagination()
-
-    def _pagination(self):
-        self.pages = convert_columns_to_pages(self.source,
-                self.columns_in_page)
+    def __init__(self, source):
+        self.pages = source
         self.current_page=0
 
     def go_previous(self):

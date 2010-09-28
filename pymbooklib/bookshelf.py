@@ -21,6 +21,7 @@
 import gobject
 import gtk
 from utils import find_pdbs
+from utils import convert_columns_to_pages
 from customdrawingarea import CustomDrawingArea
 from pageddatasource import PagedDataSource
 
@@ -65,7 +66,8 @@ class BookshelfWidget(CustomDrawingArea):
             self.y_pos_list=range(0, rect.height, (rect.height-1) )
             self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
             columns_in_page=len( self.x_pos_list )-1
-            self.datasource = PagedDataSource( self.books, columns_in_page )
+            self.datasource = PagedDataSource( convert_columns_to_pages(
+                        self.books, columns_in_page ) )
             self.old_rect=rect
             self.recalc=False
 
