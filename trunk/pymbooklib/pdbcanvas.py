@@ -24,39 +24,6 @@ from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
 from utils import convert_pdb_to_pages
 
-class TextPager:
-    def __init__(self, pdb, columns_in_page, glyphs_in_column):
-        self.current = 0
-        self.pages = convert_pdb_to_pages( pdb, columns_in_page,
-                glyphs_in_column )
-
-    def get_current_page(self):
-        return self.pages[self.current]
-
-    def count_pages(self):
-        return len(self.pages)
-
-    def count_chapter_pages(self,chapter):
-        pages=[ ch for ch, n_in_p, p in self.pages if ch==chapter ]
-        return len(pages)
-
-    def go_chapter(self,chapter):
-        self.current=0
-        for chap, n_in_page, page in self.pages:
-            if chap==chapter:
-                break
-            self.current=self.current+1
-
-    def go_previous(self):
-        self.current=self.current-1
-        if self.current<0:
-            self.current=0
-
-    def go_next(self):
-        self.current=self.current+1
-        if self.current>=len(self.pages):
-            self.current=len(self.pages)-1
-
 class PDBCanvas(PDBWidget):
     __gsignals__ = dict(tell_callback=(gobject.SIGNAL_RUN_FIRST,
                                       gobject.TYPE_NONE,
@@ -112,10 +79,12 @@ class PDBCanvas(PDBWidget):
             self.y_pos_list=range(cell_height, rect.height-cell_height, cell_height)
             columns_in_page=len( self.x_pos_list )
             glyphs_in_column=len(self.y_pos_list)
-            self.pager=TextPager(self.pdb, columns_in_page, glyphs_in_column)
-            self.pager.go_chapter(self.chapter)
+            self.source = convert_pdb_to_pages( self.pdb,
+                    columns_in_page, glyphs_in_column ) 
+            self.pager = PagedDataSource( self.source )
+            self.pager.current_page = self._search_chapter( self.chapter )
             if self.page:
-                self.pager.current=self.page
+                self.pager.current_page=self.page
             self.old_rect=rect
             self.chapter_seg = rect.width/self.pdb.chapters
             self.recalc=False
@@ -130,7 +99,7 @@ class PDBCanvas(PDBWidget):
 
         # draw page in chapter indicator
         if self.pager.count_pages()>1:
-            seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_page()[0])
+            seg = rect.width/self._count_chapter_pages(self.pager.get_current_page()[0])
             x = rect.width-(self.pager.get_current_page()[1]+1)*seg
             self._draw_indicator( cx, x, rect.height-1, seg )
 
@@ -159,7 +128,21 @@ class PDBCanvas(PDBWidget):
         return False
 
     def _tell(self):
-        self.emit("tell_callback", self.chapter, self.pager.current)
+        self.emit("tell_callback", self.chapter, self.pager.current_page)
+
+    def _count_chapter_pages(self, chapter):
+        if not self.source:
+            return -1
+        pages=[ ch for ch, n_in_p, p in self.source if ch==chapter ]
+        return len(pages)
+
+    def _search_chapter(self, chapter):
+        found = 0
+        for chap, n_in_page, page in self.source:
+            if chap==chapter:
+                break
+            found = found + 1
+        return found
 
     def scroll_event(self, widget, event):
         if not self.pdb:
