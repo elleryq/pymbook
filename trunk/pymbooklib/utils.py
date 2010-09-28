@@ -37,6 +37,14 @@ def get_font_tuple( font_name ):
     font_size = fontdesc.get_size()/pango.SCALE
     return (font_name, font_size)
 
+def convert_columns_to_pages(columns, columns_in_page):
+    pages=[]
+    page_len = len(columns)/columns_in_page+1
+    for i in range(page_len):
+        pages.append( 
+                columns[columns_in_page*i:columns_in_page*(i+1)])
+    return pages
+
 if __name__ == "__main__":
     print find_pdbs( "" )
 

@@ -19,13 +19,7 @@
 
 """PagedDataSource"""
 
-def convert_columns_to_pages(columns, columns_in_page):
-    pages=[]
-    page_len = len(columns)/columns_in_page+1
-    for i in range(page_len):
-        pages.append( 
-                columns[columns_in_page*i:columns_in_page*(i+1)])
-    return pages
+from utils import convert_columns_to_pages
 
 class PagedDataSource(object):
     def __init__(self, source, columns_in_page ):
