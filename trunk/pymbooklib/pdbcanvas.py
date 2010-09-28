@@ -23,25 +23,16 @@ import gtk
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
 
-class TextPager:
-    def __init__(self, pdb, columns_in_page, glyphs_in_column):
-        self.current = 0
-        self.pages = []
-        for chapter_num in range(pdb.chapters):
-            content = pdb.chapter(chapter_num)
-            self.pages.extend( 
-                    self.__split_to_pages( 
-                        chapter_num, content, 
-                        columns_in_page, glyphs_in_column ) )
-
-    def __split_to_pages(self, chapter_num, s, columns_in_page, glyphs_in_column):
+def convert_pdb_to_pages( pdb, columns_in_page, glyphs_in_column ):
+    def convert_text_to_pages( chapter_num, text, columns_in_page,
+            glyphs_in_column ):
         pages = []
         column = []
         column_count = 0
         glyphs = 0
         page = []
         num_in_chapter=0
-        for c in s:
+        for c in text:
             if column_count>=columns_in_page:
                 pages.append( (chapter_num, num_in_chapter, page) )
                 num_in_chapter=num_in_chapter+1
@@ -65,6 +56,20 @@ class TextPager:
             page.append( column )
         pages.append( (chapter_num, num_in_chapter, page) )
         return pages
+    pages = []
+    for chapter_num in range(pdb.chapters):
+        content = pdb.chapter(chapter_num)
+        pages.extend( 
+                convert_text_to_pages( 
+                    chapter_num, content, 
+                    columns_in_page, glyphs_in_column ) )
+    return pages
+
+class TextPager:
+    def __init__(self, pdb, columns_in_page, glyphs_in_column):
+        self.current = 0
+        self.pages = convert_pdb_to_pages( pdb, columns_in_page,
+                glyphs_in_column )
 
     def get_current_page(self):
         return self.pages[self.current][2]
@@ -163,7 +168,7 @@ class PDBCanvas(PDBWidget):
             self.recalc=False
 
         # TODO: Is here a better place?
-        self.__tell()
+        self._tell()
 
         # draw chapter indicator
         if self.pdb.chapters>1:
@@ -200,7 +205,7 @@ class PDBCanvas(PDBWidget):
 
         return False
 
-    def __tell(self):
+    def _tell(self):
         self.emit("tell_callback", self.chapter, self.pager.current)
 
     def scroll_event(self, widget, event):
