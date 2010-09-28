@@ -32,7 +32,7 @@ class PDBCanvas(PDBWidget):
     def __init__(self):
         super(PDBCanvas, self).__init__()
         self.old_rect=None
-        self.pager=None
+        self.datasource=None
         self.recalc=True
         self.pdb=None
         self.chapter=0
@@ -81,10 +81,10 @@ class PDBCanvas(PDBWidget):
             glyphs_in_column=len(self.y_pos_list)
             self.source = convert_pdb_to_pages( self.pdb,
                     columns_in_page, glyphs_in_column ) 
-            self.pager = PagedDataSource( self.source )
-            self.pager.current_page = self._search_chapter( self.chapter )
+            self.datasource = PagedDataSource( self.source )
+            self.datasource.current_page = self._search_chapter( self.chapter )
             if self.page:
-                self.pager.current_page=self.page
+                self.datasource.current_page=self.page
             self.old_rect=rect
             self.chapter_seg = rect.width/self.pdb.chapters
             self.recalc=False
@@ -94,13 +94,13 @@ class PDBCanvas(PDBWidget):
 
         # draw chapter indicator
         if self.pdb.chapters>1:
-            x = rect.width-(self.pager.get_current_page()[0]+1)*self.chapter_seg
+            x = rect.width-(self.datasource.get_current_page()[0]+1)*self.chapter_seg
             self._draw_indicator( cx, x, 0, self.chapter_seg )
 
         # draw page in chapter indicator
-        if self.pager.count_pages()>1:
-            seg = rect.width/self._count_chapter_pages(self.pager.get_current_page()[0])
-            x = rect.width-(self.pager.get_current_page()[1]+1)*seg
+        if self.datasource.count_pages()>1:
+            seg = rect.width/self._count_chapter_pages(self.datasource.get_current_page()[0])
+            x = rect.width-(self.datasource.get_current_page()[1]+1)*seg
             self._draw_indicator( cx, x, rect.height-1, seg )
 
         # draw text
@@ -108,7 +108,7 @@ class PDBCanvas(PDBWidget):
         cx.set_source_rgb( 0, 0, 0 )
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
-        page = self.pager.get_current_page()[2]
+        page = self.datasource.get_current_page()[2]
         col = 0
         for x in self.x_pos_list:
             if col>=len(page):
@@ -128,7 +128,7 @@ class PDBCanvas(PDBWidget):
         return False
 
     def _tell(self):
-        self.emit("tell_callback", self.chapter, self.pager.current_page)
+        self.emit("tell_callback", self.chapter, self.datasource.current_page)
 
     def _count_chapter_pages(self, chapter):
         if not self.source:
@@ -149,10 +149,10 @@ class PDBCanvas(PDBWidget):
             return False
 
         if event.direction==gtk.gdk.SCROLL_UP:
-            self.pager.go_previous()
+            self.datasource.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
-            self.pager.go_next()
-        self.chapter=self.pager.get_current_page()[0]
+            self.datasource.go_next()
+        self.chapter=self.datasource.get_current_page()[0]
         self.redraw_later()
         return True
 
@@ -160,13 +160,13 @@ class PDBCanvas(PDBWidget):
         if not self.pdb:
             return False
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
-            self.pager.go_previous()
+            self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
-            self.pager.go_next()
+            self.datasource.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
-            self.pager.go_previous()
+            self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
-            self.pager.go_next()
+            self.datasource.go_next()
         self.redraw_later()
         return False
 
