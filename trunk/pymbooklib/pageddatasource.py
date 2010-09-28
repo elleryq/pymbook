@@ -19,6 +19,14 @@
 
 """PagedDataSource"""
 
+def convert_columns_to_pages(columns, columns_in_page):
+    pages=[]
+    page_len = len(columns)/columns_in_page+1
+    for i in range(page_len):
+        pages.append( 
+                columns[columns_in_page*i:columns_in_page*(i+1)])
+    return pages
+
 class PagedDataSource(object):
     def __init__(self, source, columns_in_page ):
         self.source = source
@@ -26,11 +34,8 @@ class PagedDataSource(object):
         self._pagination()
 
     def _pagination(self):
-        self.pages=[]
-        page_len = len(self.source)/self.columns_in_page+1
-        for i in range(page_len):
-            self.pages.append( 
-                    self.source[self.columns_in_page*i:self.columns_in_page*(i+1)])
+        self.pages = convert_columns_to_pages(self.source,
+                self.columns_in_page)
         self.current_page=0
 
     def go_previous(self):
