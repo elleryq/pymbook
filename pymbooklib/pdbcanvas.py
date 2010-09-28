@@ -48,6 +48,9 @@ class PDBCanvas(PDBWidget):
 
     def set_chapter(self, chapter):
         self.chapter=chapter
+        if self.datasource:
+            self.set_page( self._search_chapter(chapter) )
+            return
         self.recalc=True
 
     def set_page(self, page):
@@ -152,7 +155,6 @@ class PDBCanvas(PDBWidget):
             self.datasource.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
             self.datasource.go_next()
-        self.chapter=self.datasource.get_current_page()[0]
         self.redraw_later()
         return True
 
