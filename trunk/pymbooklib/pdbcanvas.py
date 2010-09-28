@@ -72,13 +72,7 @@ class TextPager:
                 glyphs_in_column )
 
     def get_current_page(self):
-        return self.pages[self.current][2]
-
-    def get_current_page_in_chapter(self):
-        return self.pages[self.current][1]
-
-    def get_current_chapter(self):
-        return self.pages[self.current][0]
+        return self.pages[self.current]
 
     def count_pages(self):
         return len(self.pages)
@@ -172,13 +166,13 @@ class PDBCanvas(PDBWidget):
 
         # draw chapter indicator
         if self.pdb.chapters>1:
-            x = rect.width-(self.pager.get_current_chapter()+1)*self.chapter_seg
+            x = rect.width-(self.pager.get_current_page()[0]+1)*self.chapter_seg
             self._draw_indicator( cx, x, 0, self.chapter_seg )
 
         # draw page in chapter indicator
         if self.pager.count_pages()>1:
-            seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_chapter())
-            x = rect.width-(self.pager.get_current_page_in_chapter()+1)*seg
+            seg = rect.width/self.pager.count_chapter_pages(self.pager.get_current_page()[0])
+            x = rect.width-(self.pager.get_current_page()[1]+1)*seg
             self._draw_indicator( cx, x, rect.height-1, seg )
 
         # draw text
@@ -186,7 +180,7 @@ class PDBCanvas(PDBWidget):
         cx.set_source_rgb( 0, 0, 0 )
         cx.select_font_face( self.font_name )
         cx.set_font_size( self.font_size)
-        page = self.pager.get_current_page()
+        page = self.pager.get_current_page()[2]
         col = 0
         for x in self.x_pos_list:
             if col>=len(page):
@@ -216,7 +210,7 @@ class PDBCanvas(PDBWidget):
             self.pager.go_previous()
         elif event.direction==gtk.gdk.SCROLL_DOWN:
             self.pager.go_next()
-        self.chapter=self.pager.get_current_chapter()
+        self.chapter=self.pager.get_current_page()[0]
         self.redraw_later()
         return True
 
