@@ -27,7 +27,12 @@ def find_pdbs( path ):
     import glob
     import os
     pdbfiles = glob.glob( os.path.join( path, "*.pdb" ) ) + glob.glob( os.path.join( path, "*.updb" ) )
-    books = [ ( PDBFile( pdb_filename ).parse().book_name, pdb_filename ) for pdb_filename in pdbfiles ]
+    books = []
+    for pdb_filename in pdbfiles:
+        try:
+            books.append( ( PDBFile( pdb_filename ).parse().book_name, pdb_filename ) )
+        except Exception, e:
+            print pdb_filename, ':',  e
     return sorted( books )
 
 def get_font_tuple( font_name ):
