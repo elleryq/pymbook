@@ -42,13 +42,15 @@ class BaseOperation(object):
     """
     def __init__( self ):
         self.empty_str = None
+        self.escape_char = None
 
     def parseBasicInformation( self, pdb, raw_text ):
-        raw_text[0:8]=[]
-        basic_inf=self.empty_str.join(raw_text).split( chr(27) )
-        pdb.book_name = self.convert2unicode(basic_inf[0])
+        raw_text = raw_text[8:]
+        basic_inf=raw_text.split( self.escape_char )
+        pdb.book_name = self.convert2unicode(
+                self.empty_str.join(self.processString(basic_inf[0])) )
         pdb.chapters = self.extractChapters(basic_inf[3])
-        pdb.contents = self.extractContents( basic_inf[4:4+pdb.chapters ] )
+        pdb.contents = self.extractContents( basic_inf[4:] )
     
     def processString(self, file):
         pass
@@ -57,10 +59,13 @@ class BaseOperation(object):
         pass
 
     def extractChapters( self, str ):
-        pass
+        return int( self.empty_str.join(str), 10 )
 
     def extractContents( self, raw_list ):
         pass
+
+    def skipBytesCount( self ):
+        return 0
 
 class UnicodeOperation(BaseOperation):
     """
@@ -70,32 +75,26 @@ class UnicodeOperation(BaseOperation):
     def __init__( self ):
         super(UnicodeOperation, self).__init__()
         self.empty_str = u""
+        self.escape_char = "\x1b\x00"
     
     def processString(self, raw_str):
         converted_text = []
-        i = 0
-        while True:
-            ch = [ ord(c) for c in raw_str[i:i+2] ]
-            if not ch or (ch[0]==0 and ch[1]==0):
+        count = len(raw_str)/2
+        for i in range(count):
+            ch = [ ord(c) for c in raw_str[i*2:i*2+2] ]
+            if not ch or len(ch)<2 or (ch[0]==0 and ch[1]==0):
                 break
             converted_text.append( unichr( (ch[1]<<8) + ch[0] ))
-            i+=2
         return converted_text
 
     def convert2unicode( self, str ):
         return str
 
-    def extractChapters( self, str ):        
-        tmp_list = []
-        i = ord( str )
-        tmp_list.append( chr(i & 0x00ff) )
-        tmp_list.append( chr( i>>8 ) )
-        return int( self.empty_str.join(tmp_list), 10 )
-
     def extractContents( self, raw_list ):
         # workaround: len(raw_list) is 1, but we expect more.
         # So we split it ourself.
-        return self.empty_str.join(raw_list).split( u"\r\n" )
+        contents = self.processString( raw_list[0] )
+        return self.empty_str.join(contents).split( u"\r\n" )
 
 class DblByteOperation( BaseOperation ):
     """
@@ -105,6 +104,7 @@ class DblByteOperation( BaseOperation ):
     def __init__( self ):
         super(DblByteOperation, self).__init__()
         self.empty_str = ""
+        self.escape_char = "\x1b"
     
     def processString(self, raw_str):
         converted_text = []
@@ -114,20 +114,21 @@ class DblByteOperation( BaseOperation ):
             converted_text.append( ch )
         return converted_text
 
-    def convert2unicode( self, str ):
+    def convert2unicode( self, s ):
         result=""
         try:
-            result=unicode( str, "cp950", errors='ignore' )
-        except UnicodeDecodeError, e:
+            result=unicode( s, "cp950", errors='ignore' )
+        except BaseException, e:
             #print map( lambda c: "%x" % ord(c), str )
             raise e
         return result
 
-    def extractChapters( self, str ):
-        return int( self.empty_str.join(str), 10 )
-
     def extractContents( self, raw_list ):
-        return [ self.convert2unicode(s) for s in raw_list ]
+        contents = []
+        for s in raw_list:
+            contents.append( self.convert2unicode(
+                        self.empty_str.join(self.processString(s) ) ) )
+        return contents
 
 class PDBFile:
     """
@@ -144,9 +145,9 @@ class PDBFile:
         self.chapters = 0
         self.pdb_filename = pdb_filename
 
-    def __parseHeader( self, file ):
+    def __parseHeader( self, f ):
         # parse file header
-        header = file.read( PDB_HEADER_SIZE )
+        header = f.read( PDB_HEADER_SIZE )
         book_type = header[PDB_HEADER_BOOK_TYPE:PDB_HEADER_BOOK_TYPE+PDB_HEADER_BOOK_TYPE_LEN]
         if book_type == "MTIU":
             self.is_unicode = True
@@ -160,35 +161,37 @@ class PDBFile:
             raise PDBException("Not a PDB or uPDB")
         self.records = (ord(header[PDB_HEADER_RECORD])<<8) + ord(header[PDB_HEADER_RECORD+1])
         
-    def __parseChapterOffsets(self, file):
+    def __parseChapterOffsets(self, f):
         # get the offset of every chapters.
-        file.seek( PDB_CHAPTER_OFFSET, os.SEEK_SET )
+        f.seek( PDB_CHAPTER_OFFSET, os.SEEK_SET )
         for i in range( self.records ):
-            offset_record = file.read( 8 )
+            offset_record = f.read( 8 )
             if len(offset_record)!=8:
                 raise PDBException( "Offset record size is not enough(8). %d" % i )
             offset = (ord(offset_record[0])<<24) + (ord(offset_record[1])<<16) + (ord(offset_record[2])<<8) + ord(offset_record[3])
             self.chapter_start_offsets.append( offset )
         self.chapter_end_offsets = self.chapter_start_offsets[1:]
-        file.seek( 0, os.SEEK_END )
-        self.chapter_end_offsets.append( file.tell()+1 )
+        f.seek( 0, os.SEEK_END )
+        self.chapter_end_offsets.append( f.tell()+1 )
 
-    def __parseBasicInformation(self, file):
-        file.seek( self.chapter_start_offsets[0], os.SEEK_SET )
-        raw_text = self.operation.processString( file.read( self.chapter_end_offsets[0] - self.chapter_start_offsets[0] ) )
+    def __parseBasicInformation(self, f):
+        f.seek( self.chapter_start_offsets[0], os.SEEK_SET )
+        raw_text = f.read( self.chapter_end_offsets[0] - self.chapter_start_offsets[0] ) 
         self.operation.parseBasicInformation( self, raw_text )
 
     def parse( self ):
         """Must call parse() first to get PDB."""
+        f = None
         try:
             f = open( self.pdb_filename, "rb" )
             self.__parseHeader(f)
             self.__parseChapterOffsets(f)
             self.__parseBasicInformation(f)
-        except PDBException, e:
+        except BaseException, e:
             raise e
         finally:
-            f.close()
+            if f:
+                f.close()
         return self
 
     def chapter(self, num ):
@@ -197,6 +200,7 @@ class PDBFile:
         chap = num + 1
         if chap>self.chapters:
             return ""
+        f = None
         try:
             f = open( self.pdb_filename, "rb" )
             f.seek( self.chapter_start_offsets[chap], os.SEEK_SET )
@@ -205,8 +209,11 @@ class PDBFile:
             text = self.empty_str.join( 
                     self.operation.processString( raw_str ) )
             result = self.operation.convert2unicode( text )
+        except BaseException, e:
+            print e
         finally:
-            f.close()
+            if f:
+                f.close()
         return result
     
     def __str__(self):
