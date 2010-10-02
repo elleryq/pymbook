@@ -29,6 +29,7 @@ class CustomDrawingArea(gtk.DrawingArea):
 
     def __init__( self ):
         super(CustomDrawingArea, self).__init__()
+        self.timer = None
 
         # Handle these events.
         self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
