@@ -19,6 +19,6 @@
 """pymbook version by Yan-ren Tsai <elleryq@gmail.com>"""
 
 APP_NAME = 'pymbook'
-APP_VERSION = '0.3.1'
+APP_VERSION = '0.3.2'
 APP_COMMENT = ''
 APP_AUTHORS = ['Yan-ren Tsai']
