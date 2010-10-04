@@ -126,7 +126,6 @@ class Uninstall(Command):
 
 class InstallData(install_data):
   def run (self):
-    self._update_desktop_prefix()
     self.data_files.extend (self._find_mo_files ())
     install_data.run (self)
     #if not self.distribution.without_icon_cache:
@@ -136,17 +135,9 @@ class InstallData(install_data):
   def _update_icon_cache(self):
     info("running gtk-update-icon-cache")
     try:
-      subprocess.call(["gtk-update-icon-cache", "-q", "-f", "-t",
-              os.path.join(self.install_dir, "share/pixmaps")])
+      subprocess.call(["gtk-update-icon-cache", "-q", "-f", "-t", os.path.join(self.install_dir, "share/icons/hicolor")])
     except Exception, e:
       warn("updating the GTK icon cache failed: %s" % str(e))
-
-  def _update_desktop_prefix(self):
-    #desktop_data=os.path.join( self.install_dir, 'share', 'pixmaps', 'pymbook.desktop' )
-    desktop_data='data/pymbook.desktop'
-    os.system ("C_ALL=C sed -i -e 's/%prefix%/" +
-            self.install_dir.replace( '/', '\\/' ) + "/g' " + 
-            desktop_data )
 
   def _find_mo_files (self):
     data_files = []
@@ -170,7 +161,13 @@ setup(name=APP_NAME.capitalize(),
       scripts=['pymbook'],
       data_files=[
                   ('share/applications', ['data/pymbook.desktop']),
-                  ('share/pixmaps', ['data/haodoo_logo.png']),
+                  ('share/pixmaps', ['data/icons/48x48/pymbook.png']),
+                  ('share/icons/hicolor/scalable/apps', glob.glob('data/icons/scalable/*.svg')),
+                  ('share/icons/hicolor/16x16/apps', glob.glob('data/icons/16x16/*.png')),
+                  ('share/icons/hicolor/22x22/apps', glob.glob('data/icons/22x22/*.png')),
+                  ('share/icons/hicolor/24x24/apps', glob.glob('data/icons/24x24/*.png')),
+                  ('share/icons/hicolor/32x32/apps', glob.glob('data/icons/32x32/*.png')),
+                  ('share/icons/hicolor/48x48/apps', glob.glob('data/icons/48x48/*.png')),
                  ],
       packages=['pymbooklib',],
       package_data={'pymbooklib': 
