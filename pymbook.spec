@@ -1,14 +1,14 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           pymbook
-Version:        0.1
-Release:        3%{?dist}
+Version:        0.4
+Release:        0%{?dist}
 Summary:        A reader application for http://www.haodoo.net
 
 Group:          Utilities/Desktops
 License:        GPLv3
-URL:            http://code.google.com/p/pymbook/
-Source0:        http://code.google.com/p/pymbook/
+URL:            http://code.google.com/p/pymbook
+Source0:        pymbook-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
@@ -43,10 +43,12 @@ rm -rf %{buildroot}
 
 %files -f %{name}.lang
 %defattr(-,root,root)
-%doc README COPYING ChangeLog
+%doc COPYING
 %{_bindir}/%{name}
 %{python_sitelib}/*
 %{_datadir}/applications/%{name}.desktop
+%{_datadir}/icons/hicolor/*/*/%{name}*.png
+%{_datadir}/icons/hicolor/*/*/%{name}*.svg
 %{_datadir}/pixmaps/%{name}.png
 
 
@@ -59,6 +61,6 @@ gtk-update-icon-cache -qf %{_datadir}/icons/hicolor &>/dev/null || :
 
 
 %changelog
-* Thu Sep 9 2010 Yan-ren Tsai <elleryq@gmail.com> 0.1-0
+* Tue Oct 5 2010 Yan-ren Tsai <elleryq@gmail.com> 0.4-0
 - Initial release for Fedora.
-    Note that this specfile is untested.
+    Note that this specfile is tested.
