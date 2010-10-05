@@ -33,14 +33,45 @@ class BookshelfWidget(CustomDrawingArea):
     def __init__( self, shelf_path ):
         super(BookshelfWidget, self).__init__()
         self.books = find_pdbs( shelf_path )
-        self.old_rect=None
-        self.recalc=True
 
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
         self.connect("key-release-event", self.key_release )
+        self.connect("configure-event", self.configure )
+
+    def get_cell_size(self):
+        return (self.font_size*2, self.font_size+self.font_size/3)
+
+    def do_calc(self):
+        rect = self.get_allocation()
+        cell_width, cell_height = self.get_cell_size()
+        self.x_pos_list = range(rect.width-cell_width*2, 
+                rect.x+cell_width, -cell_width)
+        self.y_pos_list = range(0, rect.height, (rect.height-1) )
+        self.regions = [ 
+            gtk.gdk.region_rectangle( (x, self.y_pos_list[0], 
+                        cell_width, self.y_pos_list[-1]-self.y_pos_list[0]
+                    ) ) for x in self.x_pos_list[1:]]
+        columns_in_page = len( self.x_pos_list )-1
+        self.datasource = PagedDataSource( convert_columns_to_pages(
+                    self.books, columns_in_page ) )
+    
+    def draw_string(self, cx, s, x, y, limit):
+        cell_width, cell_height = self.get_cell_size()
+        for c in s:
+            cx.move_to( x, y )
+            cx.show_text( c )
+            y = y + cell_height
+            if y > limit:
+                break
+
+    def configure(self, widget, event):
+        if not self.books:
+            return False
+
+        self.do_calc()
 
     def expose(self, widget, event):
         if not self.books:
@@ -51,25 +82,7 @@ class BookshelfWidget(CustomDrawingArea):
         # get canvas size
         rect=self.get_allocation()
 
-        cell_width=self.font_size*2
-        cell_height=self.font_size+self.font_size/3
-
-        # The first time.
-        if not self.old_rect:
-            self.recalc=True
-        # If windows size is changed.
-        elif self.old_rect and self.old_rect!=rect:
-            self.recalc=True
-
-        if self.recalc:
-            self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-            self.y_pos_list=range(0, rect.height, (rect.height-1) )
-            self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
-            columns_in_page=len( self.x_pos_list )-1
-            self.datasource = PagedDataSource( convert_columns_to_pages(
-                        self.books, columns_in_page ) )
-            self.old_rect=rect
-            self.recalc=False
+        cell_width, cell_height = self.get_cell_size()
 
         # draw grid
         cx.set_source_rgb( 0, 0, 0 )
@@ -95,15 +108,12 @@ class BookshelfWidget(CustomDrawingArea):
         start_y = 0
         columns_in_page=len( self.x_pos_list )
         try:
+            padding_left = cell_width/4
             for book_name, pdb_filename in self.datasource.get_current_page():
-                x = self.x_pos_list[ start_x ] + cell_width/4
-                y = self.y_pos_list[ start_y ] + cell_height
-                for c in book_name:
-                    cx.move_to( x, y )
-                    cx.show_text( c )
-                    y = y + cell_height
-                    if y>self.y_pos_list[ -1 ]:
-                        break
+                self.draw_string( cx, book_name, 
+                        self.x_pos_list[start_x] + padding_left,
+                        self.y_pos_list[start_y] + cell_height, 
+                        self.y_pos_list[-1] )
                 start_x = start_x + 1
                 if start_x>columns_in_page:
                     start_x = 1
