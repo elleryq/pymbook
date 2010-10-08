@@ -44,6 +44,7 @@ class ShelfState( State ):
         self.window.btn_content.set_sensitive( False )
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(SHELF_TAB)
+        self.window.bookshelf.grab_focus()
         return super(ShelfState, self).enter()
 
     def __repr__(self):
@@ -69,6 +70,7 @@ class ContentState( State ):
         self.window.btn_content.set_sensitive( False )
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(CONTENT_TAB)
+        self.window.pdb_contents.grab_focus()
         return super(ContentState, self).enter()
 
     def __repr__(self):
@@ -94,6 +96,7 @@ class ReadingState( State ):
         self.window.btn_content.set_sensitive( True )
         self.window.btn_return.set_sensitive( False )
         self.window.notebook.set_current_page(CONTEXT_TAB)
+        self.window.pdb_canvas.grab_focus()
         return super(ReadingState, self).enter()
 
     def __repr__(self):
