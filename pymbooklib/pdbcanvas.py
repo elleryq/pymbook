@@ -174,5 +174,5 @@ class PDBCanvas(PDBWidget):
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.datasource.go_next()
         self.redraw_later()
-        return False
+        return True
 

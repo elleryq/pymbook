@@ -31,6 +31,8 @@ class CustomDrawingArea(gtk.DrawingArea):
         super(CustomDrawingArea, self).__init__()
         self.timer = None
 
+        self.set_flags( gtk.CAN_FOCUS | gtk.SENSITIVE )
+
         # Handle these events.
         self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
                         gtk.gdk.BUTTON_RELEASE_MASK | 

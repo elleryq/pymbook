@@ -24,7 +24,6 @@ from customdrawingarea import CustomDrawingArea
 class PDBWidget(CustomDrawingArea):
     def __init__(self):
         super(PDBWidget, self).__init__()
-        self.set_flags( gtk.CAN_FOCUS )
         self.pdb = None
 
     def set_font(self, font):
