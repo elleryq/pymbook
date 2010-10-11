@@ -38,7 +38,7 @@ class BookshelfWidget(CustomDrawingArea):
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
-        self.connect("key-release-event", self.key_release )
+        self.connect("key-press-event", self.key_press)
         self.connect("configure-event", self.configure )
 
     def get_cell_size(self):
@@ -148,19 +148,23 @@ class BookshelfWidget(CustomDrawingArea):
         #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
         return False
 
-    def key_release(self, widget, event ):
+    def key_press(self, widget, event ):
         if not self.books:
             return False
+        flag = True
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
+        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down") or \
+            event.keyval==gtk.gdk.keyval_from_name("Space"):
             self.datasource.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
             self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.datasource.go_next()
+        else:
+            flag = False
         self.redraw_later()
-        return False
+        return flag
 
     def which_book(self, x, y):
         selected=0

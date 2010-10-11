@@ -40,7 +40,7 @@ class PDBCanvas(PDBWidget):
 
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
-        self.connect("key-release-event", self.key_release )
+        self.connect("key-press-event", self.key_press )
 
     def set_pdb(self, pdb):
         super(PDBCanvas, self).set_pdb( pdb )
@@ -162,17 +162,22 @@ class PDBCanvas(PDBWidget):
         self.redraw_later()
         return True
 
-    def key_release(self, widget, event ):
+    def key_press(self, widget, event ):
+        flag = False
         if not self.pdb:
-            return False
+            return flag
+        flag = True
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
+        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down") or \
+            event.keyval==gtk.gdk.keyval_from_name("Space"):
             self.datasource.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
             self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.datasource.go_next()
+        else:
+            flag = False
         self.redraw_later()
-        return True
+        return flag
 

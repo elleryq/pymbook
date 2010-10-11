@@ -39,7 +39,7 @@ class PDBContents(PDBWidget):
         self.connect("scroll-event", self.scroll_event )
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
-        self.connect("key-release-event", self.key_release )
+        self.connect("key-press-event", self.key_press)
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -139,19 +139,24 @@ class PDBContents(PDBWidget):
         #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
         return False
 
-    def key_release(self, widget, event ):
+    def key_press(self, widget, event ):
+        flag = False
         if not self.pdb:
-            return False
+            return flag 
+        flag = True
         if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down"):
+        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down") or \
+            event.keyval==gtk.gdk.keyval_from_name("Space"):
             self.datasource.go_next()
         elif event.keyval==gtk.gdk.keyval_from_name("Up"):
             self.datasource.go_previous()
         elif event.keyval==gtk.gdk.keyval_from_name("Down"):
             self.datasource.go_next()
+        else:
+            flag = False
         self.redraw_later()
-        return False
+        return flag
 
     def which_chapter(self, x, y):
         selected=0
