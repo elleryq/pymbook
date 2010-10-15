@@ -308,8 +308,9 @@ class MainWindow:
             result = dialog.run()
             dialog.destroy()
             return
-        self.pdb_canvas.set_chapter(chapter)
+        print( "chapter=%d" % chapter )
         self.pdb_canvas.redraw_canvas()
+        self.pdb_canvas.set_chapter(chapter)
         self.state = ReadingState(self).enter()
 
     def bookshelf_book_selected_cb(self, widget, book):
@@ -327,6 +328,8 @@ class MainWindow:
         book_name, pdb_filename = self.bookshelf.get_book(book) 
         if self.open_pdb( pdb_filename ):
             self.pdb_filename = pdb_filename
+            self.pdb_contents.set_pdb( self.pdb )
+            self.pdb_contents.redraw_canvas()
             self.state = ContentState(self).enter()
 
     def pdb_canvas_tell_callback(self, widget, chapter, page):

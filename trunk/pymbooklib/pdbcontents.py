@@ -40,6 +40,30 @@ class PDBContents(PDBWidget):
         self.connect("button_release_event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
         self.connect("key-press-event", self.key_press)
+        self.connect("configure-event", self.configure )
+
+    def get_cell_size(self):
+        cell_width=self.font_size*2
+        cell_height=self.font_size+self.font_size/3
+        return (cell_width, cell_height)
+
+    def do_calc(self):
+        rect=self.get_allocation()
+        cell_width, cell_height = self.get_cell_size()
+        self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
+        self.y_pos_list=range(10, rect.height-10, (rect.height-21) )
+        self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
+        columns_in_page=len( self.x_pos_list )-1
+        self.datasource = PagedDataSource( convert_columns_to_pages(
+                    self.pdb.contents, columns_in_page ) )
+
+        self.old_rect=rect
+
+    def configure(self, widget, event):
+        if not self.pdb:
+            return False
+
+        self.do_calc()
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -50,26 +74,7 @@ class PDBContents(PDBWidget):
         # get canvas size
         rect=self.get_allocation()
 
-        cell_width=self.font_size*2
-        cell_height=self.font_size+self.font_size/3
-
-        # The first time.
-        if not self.old_rect:
-            self.recalc=True
-        # If windows size is changed.
-        elif self.old_rect and self.old_rect!=rect:
-            self.recalc=True
-
-        if self.recalc:
-            self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-            self.y_pos_list=range(10, rect.height-10, (rect.height-21) )
-            self.regions=[ gtk.gdk.region_rectangle( (x, self.y_pos_list[0], cell_width, self.y_pos_list[-1]-self.y_pos_list[0]) ) for x in self.x_pos_list[1:]]
-            columns_in_page=len( self.x_pos_list )-1
-            self.datasource = PagedDataSource( convert_columns_to_pages(
-                        self.pdb.contents, columns_in_page ) )
-
-            self.old_rect=rect
-            self.recalc=False
+        cell_width, cell_height = self.get_cell_size()
 
         # draw grid
         cx.set_source_rgb( 0, 0, 0 )
@@ -165,7 +170,7 @@ class PDBContents(PDBWidget):
                 break
             selected=selected+1
         if self.datasource.current_page>0:
-            for page in self.pages[:self.datasource.current_page]:
+            for page in self.datasource.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
         chapter = selected
         if chapter>=self.pdb.chapters:

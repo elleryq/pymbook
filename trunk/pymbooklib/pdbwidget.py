@@ -28,9 +28,12 @@ class PDBWidget(CustomDrawingArea):
 
     def set_font(self, font):
         super(PDBWidget, self).set_font(font)
-        self.recalc = True
+        if self.pdb:
+            self.do_calc()
 
     def set_pdb(self, pdb):
         self.pdb = pdb
-        self.recalc = True
+        self.do_calc()
 
+    def do_calc(self):
+        pass

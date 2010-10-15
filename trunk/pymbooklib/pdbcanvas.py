@@ -33,7 +33,6 @@ class PDBCanvas(PDBWidget):
         super(PDBCanvas, self).__init__()
         self.old_rect=None
         self.datasource=None
-        self.recalc=True
         self.pdb=None
         self.chapter=0
         self.page=0
@@ -41,6 +40,7 @@ class PDBCanvas(PDBWidget):
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
         self.connect("key-press-event", self.key_press )
+        self.connect("configure-event", self.configure )
 
     def set_pdb(self, pdb):
         super(PDBCanvas, self).set_pdb( pdb )
@@ -48,17 +48,27 @@ class PDBCanvas(PDBWidget):
 
     def set_chapter(self, chapter):
         self.chapter=chapter
-        if self.datasource:
-            self.set_page( self._search_chapter(chapter) )
+
+        if not self.pdb:
             return
-        self.recalc=True
+
+        if not self.datasource:
+            self.do_calc()
+
+        print( "chapter %d is in page %d" % (
+                    self.chapter,
+                    self._search_chapter(chapter) ) )
+        self.set_page( self._search_chapter(chapter) )
 
     def set_page(self, page):
         self.page=page
-        self.recalc=True
-        self.redraw_later()
+        if self.datasource:
+            print( "set_page and redraw" )
+            self.datasource.current_page=page
+            self.redraw_canvas()
 
-    def _recalc(self):
+    def do_calc(self):
+        # get canvas size
         rect=self.get_allocation()
         cell_width=self.font_size+self.font_size/4
         cell_height=self.font_size+self.font_size/3
@@ -71,11 +81,17 @@ class PDBCanvas(PDBWidget):
                 columns_in_page, glyphs_in_column ) 
         self.datasource = PagedDataSource( self.source )
         self.datasource.current_page = self._search_chapter( self.chapter )
+        print( "do_calc() self.page=%d" % self.page )
         if self.page:
             self.datasource.current_page=self.page
         self.old_rect=rect
         self.chapter_seg = rect.width/self.pdb.chapters
-        self.recalc=False
+
+    def configure(self, widget, event):
+        if not self.pdb:
+            return False
+
+        self.do_calc()
 
     def expose(self, widget, event):
         if not self.pdb:
@@ -83,22 +99,12 @@ class PDBCanvas(PDBWidget):
 
         cx=widget.window.cairo_create()
 
-        # get canvas size
         rect=self.get_allocation()
-
-        # The first time.
-        if not self.old_rect:
-            self.recalc=True
-        # If windows size is changed.
-        elif self.old_rect and self.old_rect!=rect:
-            self.recalc=True
-
-        if self.recalc:
-            self._recalc()
 
         # TODO: Is here a better place?
         self._tell()
 
+        print("expose: current_page=%d" % self.datasource.current_page )
         # draw chapter indicator
         if self.pdb.chapters>1:
             x = rect.width-(self.datasource.get_current_page()[0]+1)*self.chapter_seg
