@@ -24,6 +24,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
+import logging
 
 import pdb
 import version
@@ -47,9 +48,16 @@ class MainWindow:
         self.pref_dlg = None
         self.config = config.Config()
         self.config.load()
+        self.initialize_logging()
     	self.initialize_component()
         if filename and self.open_pdb( filename ):
             self.pdb_filename = filename
+
+    def initialize_logging(self):
+        if self.config[config.ENTRY_LOG_FILENAME]:
+            logging.basicConfig(
+                    filename=self.config[ENTRY_LOG_FILENAME],
+                    level=logging.DEBUG)
 
     def initialize_component(self):
     	try:
@@ -58,7 +66,7 @@ class MainWindow:
             glade_file = os.path.join( os.path.dirname( version.__file__ ), 'main_window.glade' )
             self.builder.add_from_file( glade_file )
     	except BaseException, e:
-            print( e )
+            logging.error( e )
             err_dialog = gtk.MessageDialog(
                     None, 
                     gtk.DIALOG_MODAL, 
@@ -272,7 +280,7 @@ class MainWindow:
             glade_file = os.path.join( os.path.dirname( version.__file__ ), 'preference_dialog.glade' )
             pref_dlg = builder.add_from_file( glade_file )
         except BaseException, e:
-            print( e )
+            logging.error( e )
             return
         pref_dlg = builder.get_object("dialog1")
         chooser_btn = builder.get_object("filechooserbutton1")
@@ -308,7 +316,7 @@ class MainWindow:
             result = dialog.run()
             dialog.destroy()
             return
-        print( "chapter=%d" % chapter )
+        logging.debug( "chapter=%d" % chapter )
         self.pdb_canvas.redraw_canvas()
         self.pdb_canvas.set_chapter(chapter)
         self.state = ReadingState(self).enter()

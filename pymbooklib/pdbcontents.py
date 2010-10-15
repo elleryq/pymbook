@@ -20,6 +20,8 @@
 """PDBContents"""
 import gobject
 import gtk
+import logging
+
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
 from utils import convert_columns_to_pages
@@ -113,9 +115,12 @@ class PDBContents(PDBWidget):
                 if start_x>columns_in_page:
                     start_x = 1
         except IndexError, e:
-            print e
-            print start_x, len(self.x_pos_list), columns_in_page, \
-    len(self.datasource.get_current_page())
+            logging.error( e )
+            logging.debug( 
+                "start_x=%d len(x_pos_list)=%d columns_in_page=%d len(datasource.get_current_page())" % (
+                    start_x, len(self.x_pos_list),
+                    columns_in_page, 
+                    len(self.datasource.get_current_page()) ) )
         cx.restore()
 
         return False
@@ -141,7 +146,8 @@ class PDBContents(PDBWidget):
         if not self.pdb:
             return False
         # TODO:
-        #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
+        logging.debug("which chapter? %d" % 
+                self.which_chapter(event.x, event.y) )
         return False
 
     def key_press(self, widget, event ):

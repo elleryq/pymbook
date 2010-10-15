@@ -28,6 +28,7 @@ ENTRY_FONT_SIZE = "font_size"
 ENTRY_CURRENT_PDB = "current_pdb"
 ENTRY_CURRENT_CHAPTER = "current_chapter"
 ENTRY_CURRENT_PAGE = "current_page"
+ENTRY_LOG_FILENAME = "log_filename"
 
 DEFAULT_FONT_NAME = "文泉驛微米黑"
 DEFAULT_FONT_SIZE = 16
