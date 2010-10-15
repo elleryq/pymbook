@@ -173,7 +173,7 @@ class BookshelfWidget(CustomDrawingArea):
                 break
             selected=selected+1
         if self.datasource.current_page>0:
-            for page in self.pages[:self.datasource.current_page]:
+            for page in self.datasource.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
         book = selected
         if book>=len(self.books):
