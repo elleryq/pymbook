@@ -56,7 +56,7 @@ class MainWindow:
     def initialize_logging(self):
         if self.config[config.ENTRY_LOG_FILENAME]:
             logging.basicConfig(
-                    filename=self.config[ENTRY_LOG_FILENAME],
+                    filename=self.config[config.ENTRY_LOG_FILENAME],
                     level=logging.DEBUG)
 
     def initialize_component(self):
