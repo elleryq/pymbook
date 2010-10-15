@@ -20,6 +20,8 @@
 """PDBCanvas"""
 import gobject
 import gtk
+import logging
+
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
 from utils import convert_pdb_to_pages
@@ -55,7 +57,7 @@ class PDBCanvas(PDBWidget):
         if not self.datasource:
             self.do_calc()
 
-        print( "chapter %d is in page %d" % (
+        logging.debug( "chapter %d is in page %d" % (
                     self.chapter,
                     self._search_chapter(chapter) ) )
         self.set_page( self._search_chapter(chapter) )
@@ -63,7 +65,6 @@ class PDBCanvas(PDBWidget):
     def set_page(self, page):
         self.page=page
         if self.datasource:
-            print( "set_page and redraw" )
             self.datasource.current_page=page
             self.redraw_canvas()
 
@@ -81,7 +82,7 @@ class PDBCanvas(PDBWidget):
                 columns_in_page, glyphs_in_column ) 
         self.datasource = PagedDataSource( self.source )
         self.datasource.current_page = self._search_chapter( self.chapter )
-        print( "do_calc() self.page=%d" % self.page )
+        logging.debug( "do_calc() self.page=%d" % self.page )
         if self.page:
             self.datasource.current_page=self.page
         self.old_rect=rect
@@ -104,7 +105,7 @@ class PDBCanvas(PDBWidget):
         # TODO: Is here a better place?
         self._tell()
 
-        print("expose: current_page=%d" % self.datasource.current_page )
+        logging.debug("pdbcanvas.expose: current_page=%d" % self.datasource.current_page )
         # draw chapter indicator
         if self.pdb.chapters>1:
             x = rect.width-(self.datasource.get_current_page()[0]+1)*self.chapter_seg
