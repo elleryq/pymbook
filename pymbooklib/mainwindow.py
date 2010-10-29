@@ -79,6 +79,18 @@ class MainWindow:
             result = False
         return result
 
+    def initialize_recent_files(self, builder):
+        self.recent = gtk.RecentManager()
+        menu_recent = gtk.RecentChooserMenu(self.recent)
+        menu_recent.set_limit(10)
+        self.file_filter = gtk.RecentFilter()
+        self.file_filter.add_pattern("*.pdb")
+        self.file_filter.add_pattern("*.updb")
+        menu_recent.set_filter(self.file_filter)
+        menu_recent.connect("item-activated", self.select_recent_cb)
+        menuitem_recent = builder.get_object("mi_recent_files")
+        menuitem_recent.set_submenu(menu_recent)
+
     def initialize_component(self):
         builder = gtk.Builder()
         if not self.load_ui( builder ):
@@ -103,16 +115,7 @@ class MainWindow:
         self.notebook=builder.get_object("notebook1")
 
         # Recent files
-        self.recent = gtk.RecentManager()
-        menu_recent = gtk.RecentChooserMenu(self.recent)
-        menu_recent.set_limit(10)
-        self.file_filter = gtk.RecentFilter()
-        self.file_filter.add_pattern("*.pdb")
-        self.file_filter.add_pattern("*.updb")
-        menu_recent.set_filter(self.file_filter)
-        menu_recent.connect("item-activated", self.select_recent_cb)
-        menuitem_recent = builder.get_object("mi_recent_files")
-        menuitem_recent.set_submenu(menu_recent)
+        self.initialize_recent_files(builder)
 
         font = "%s %d" % ( 
                 self.config[config.ENTRY_FONT_NAME],
