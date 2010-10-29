@@ -59,12 +59,12 @@ class MainWindow:
                     filename=self.config[config.ENTRY_LOG_FILENAME],
                     level=logging.DEBUG)
 
-    def initialize_component(self):
+    def load_ui(self, builder):
+        result = True
     	try:
-            self.builder = gtk.Builder()
-            self.builder.set_translation_domain(APP_NAME)
+            builder.set_translation_domain(APP_NAME)
             glade_file = os.path.join( os.path.dirname( version.__file__ ), 'main_window.glade' )
-            self.builder.add_from_file( glade_file )
+            builder.add_from_file( glade_file )
     	except BaseException, e:
             logging.error( e )
             err_dialog = gtk.MessageDialog(
@@ -76,7 +76,14 @@ class MainWindow:
             result = err_dialog.run()
             err_dialog.destroy()
             self.leave()
+            result = False
+        return result
+
+    def initialize_component(self):
+        self.builder = gtk.Builder()
+        if not self.load_ui( self.builder ):
             return
+
     	self.window = self.builder.get_object("window1")
         self.window.set_title( APP_NAME )
         self.window.set_position( gtk.WIN_POS_CENTER )
