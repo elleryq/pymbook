@@ -28,6 +28,7 @@ import logging
 
 import pdb
 import version
+from pdb import PDBException
 from version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
 from pdbwidget import PDBWidget
 from pdbcontents import PDBContents
@@ -36,13 +37,15 @@ from bookshelf import BookshelfWidget, find_pdbs
 import config
 from state import ShelfState, ShelfCanBackState 
 from state import ContentState, ContentCanBackState 
-from state import ReadingState
+from state import State, ReadingState
 from translation import _
 from utils import get_font_tuple
 
 class MainWindow:
     """MainWindow"""
     def __init__(self, filename=None):
+        self.chapter = -1
+        self.page = -1
         self.pdb_filename = None
         self.pdb = None
         self.pref_dlg = None
@@ -90,6 +93,38 @@ class MainWindow:
         menu_recent.connect("item-activated", self.select_recent_cb)
         menuitem_recent = builder.get_object("mi_recent_files")
         menuitem_recent.set_submenu(menu_recent)
+
+    def create_state_from_name( self, state_name ):
+        states = {
+            config.STATE_BOOKSHELF: ShelfState(),
+            config.STATE_CONTENT: ContentState(),
+            config.STATE_READING: ReadingState()
+        }
+        if not states.has_key( state_name ):
+            return None
+        return states[ state_name ]
+
+    def restore_state(self):
+        State.config = self.config
+        State.window = self
+
+        self.state = None
+
+        if self.config[config.ENTRY_STATE]:
+            self.state = self.create_state_from_name(
+                    self.config[config.ENTRY_STATE] )
+
+        if not self.state:
+            self.state = ShelfState()
+
+        try:
+            self.state.load()
+        except BaseException, e:
+            logging.warn( e )
+            logging.info( "Fallback to ShelfState" )
+            self.state = ShelfState()
+            self.state.load()
+        self.state.enter()
 
     def initialize_component(self):
         builder = gtk.Builder()
@@ -149,30 +184,10 @@ class MainWindow:
         label = gtk.Label(_("Text"))
         self.notebook.append_page(frame, label)
 
-        enter_reading_state = False
-        if self.config[config.ENTRY_CURRENT_CHAPTER]:
-            self.pdb_canvas.set_chapter(
-                self.config[config.ENTRY_CURRENT_CHAPTER] )
-            enter_reading_state = True
-        if self.config[config.ENTRY_CURRENT_PAGE]:
-            self.pdb_canvas.set_page(
-                self.config[config.ENTRY_CURRENT_PAGE] )
-            enter_reading_state = True
+        self.restore_state()
 
         frame.show()
         self.pdb_canvas.show()
-
-        filename = None
-        if self.config[config.ENTRY_CURRENT_PDB]:
-            filename = self.config[config.ENTRY_CURRENT_PDB]
-        if filename and len(filename) and self.open_pdb( filename ):
-            self.pdb_filename = filename
-            if enter_reading_state:
-                self.state = ReadingState(self).enter()
-            else:
-                self.state = ContentState(self).enter()
-        else:
-            self.state = ShelfState(self).enter()
 
         # connect signals
         self.bookshelf.connect("book_selected", self.bookshelf_book_selected_cb )
@@ -190,7 +205,7 @@ class MainWindow:
             self.pdb_contents.redraw_canvas()
             self.pdb_canvas.set_pdb( self.pdb )
             self.pdb_canvas.redraw_canvas()
-        except BaseException, ex:
+        except PDBException, ex:
             dialog=gtk.MessageDialog(
                     self.window, 
                     gtk.DIALOG_MODAL, 
@@ -256,6 +271,7 @@ class MainWindow:
             self.pdb_filename=dialog.get_filename()
             if self.open_pdb( self.pdb_filename ):
                 self.state = ContentState( self ).enter()
+                self.state.save()
         elif response==gtk.RESPONSE_CANCEL:
             pass
         dialog.destroy()
@@ -281,7 +297,8 @@ class MainWindow:
         self.pdb_canvas.redraw_canvas()
 
     def act_index_activate_cb(self, b):
-        self.state = ContentCanBackState(self).enter()
+        self.state = ContentCanBackState().enter()
+        self.state.save()
 
     def act_preference_activate_cb(self, b):
         try:
@@ -308,12 +325,12 @@ class MainWindow:
 
     def act_shelf_activate_cb( self, b ):
         if isinstance(self.state, ReadingState):
-            self.state = ShelfCanBackState(self).enter()
+            self.state = ShelfCanBackState().enter()
         else:
-            self.state = ShelfState(self).enter()
+            self.state = ShelfState().enter()
 
     def act_return_activate_cb( self, b ):
-        self.state = ReadingState(self).enter()
+        self.state = ReadingState().enter()
 
     def pdb_contents_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
@@ -329,7 +346,8 @@ class MainWindow:
         logging.debug( "chapter=%d" % chapter )
         self.pdb_canvas.redraw_canvas()
         self.pdb_canvas.set_chapter(chapter)
-        self.state = ReadingState(self).enter()
+        self.state = ReadingState().enter()
+        self.state.save()
 
     def bookshelf_book_selected_cb(self, widget, book):
         if book==-1:
@@ -343,14 +361,17 @@ class MainWindow:
             dialog.destroy()
             return
 
-        book_name, pdb_filename = self.bookshelf.get_book(book) 
+        book_name, pdb_filename = self.bookshelf.get_book(book)
+        logging.debug( "(%s, %s) is selected" % (book_name, pdb_filename) )
         if self.open_pdb( pdb_filename ):
             self.pdb_filename = pdb_filename
             self.pdb_contents.set_pdb( self.pdb )
             self.pdb_contents.redraw_canvas()
-            self.state = ContentState(self).enter()
+            self.state = ContentState().enter()
+            self.state.save()
 
     def pdb_canvas_tell_callback(self, widget, chapter, page):
-        self.config[config.ENTRY_CURRENT_CHAPTER] = chapter
-        self.config[config.ENTRY_CURRENT_PAGE] = page
-        self.config.save()
+        self.chapter = chapter
+        self.page = page
+        self.state.save()
+
