@@ -57,10 +57,11 @@ class PDBCanvas(PDBWidget):
         if not self.datasource:
             self.do_calc()
 
+        page = self._search_chapter(chapter)
         logging.debug( "chapter %d is in page %d" % (
                     self.chapter,
-                    self._search_chapter(chapter) ) )
-        self.set_page( self._search_chapter(chapter) )
+                    page ) )
+        self.set_page( page )
 
     def set_page(self, page):
         self.page=page
@@ -153,7 +154,9 @@ class PDBCanvas(PDBWidget):
     def _search_chapter(self, chapter):
         found = 0
         for chap, n_in_page, page in self.source:
-            if chap==chapter:
+            logging.debug( "(chap, n_in_page, page)=(%d, %d)" % (
+                        chap, n_in_page ) )
+            if chap == chapter:
                 break
             found = found + 1
         return found
