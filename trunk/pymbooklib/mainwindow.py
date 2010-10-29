@@ -80,11 +80,11 @@ class MainWindow:
         return result
 
     def initialize_component(self):
-        self.builder = gtk.Builder()
-        if not self.load_ui( self.builder ):
+        builder = gtk.Builder()
+        if not self.load_ui( builder ):
             return
 
-    	self.window = self.builder.get_object("window1")
+    	self.window = builder.get_object("window1")
         self.window.set_title( APP_NAME )
         self.window.set_position( gtk.WIN_POS_CENTER )
         # set minimal size
@@ -95,12 +95,12 @@ class MainWindow:
                 self.config[config.ENTRY_WIDTH], 
                 self.config[config.ENTRY_HEIGHT] )
 
-        self.btn_shelf = self.builder.get_object("btn_shelf")
-        self.btn_content = self.builder.get_object("btn_content")
-        self.btn_return = self.builder.get_object("btn_return")
+        self.btn_shelf = builder.get_object("btn_shelf")
+        self.btn_content = builder.get_object("btn_content")
+        self.btn_return = builder.get_object("btn_return")
         
-        self.act_quit = self.builder.get_object("act_quit")
-        self.notebook=self.builder.get_object("notebook1")
+        self.act_quit = builder.get_object("act_quit")
+        self.notebook=builder.get_object("notebook1")
 
         # Recent files
         self.recent = gtk.RecentManager()
@@ -111,7 +111,7 @@ class MainWindow:
         self.file_filter.add_pattern("*.updb")
         menu_recent.set_filter(self.file_filter)
         menu_recent.connect("item-activated", self.select_recent_cb)
-        menuitem_recent = self.builder.get_object("mi_recent_files")
+        menuitem_recent = builder.get_object("mi_recent_files")
         menuitem_recent.set_submenu(menu_recent)
 
         font = "%s %d" % ( 
@@ -176,7 +176,7 @@ class MainWindow:
         self.pdb_contents.connect("chapter_selected", self.pdb_contents_chapter_selected_cb)
         self.pdb_canvas.connect("tell_callback", self.pdb_canvas_tell_callback )
 
-    	self.builder.connect_signals(self)
+    	builder.connect_signals(self)
     	self.window.show()
 
     def open_pdb( self, pdb_filename ):
