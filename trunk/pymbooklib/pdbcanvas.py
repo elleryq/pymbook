@@ -163,10 +163,12 @@ class PDBCanvas(PDBWidget):
         Return the chapter number if found, else return None.
         """
         found = None
+        page_count = 0
         for chap, n_in_page, page in self.source:
             if chap == chapter:
-                found = chap
+                found = page_count
                 break
+            page_count = page_count + 1
         return found
 
     def scroll_event(self, widget, event):
