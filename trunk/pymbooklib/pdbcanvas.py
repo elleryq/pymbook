@@ -33,11 +33,11 @@ class PDBCanvas(PDBWidget):
 
     def __init__(self):
         super(PDBCanvas, self).__init__()
-        self.old_rect=None
-        self.datasource=None
-        self.pdb=None
-        self.chapter=0
-        self.page=0
+        self.old_rect = None
+        self.datasource = None
+        self.pdb = None
+        self.chapter = 0
+        self.page = 0
 
         self.connect("expose_event", self.expose)
         self.connect("scroll-event", self.scroll_event )
@@ -58,6 +58,8 @@ class PDBCanvas(PDBWidget):
             self.do_calc()
 
         page = self._search_chapter(chapter)
+        if not page:
+            page = 0
         logging.debug( "chapter %d is in page %d" % (
                     self.chapter,
                     page ) )
@@ -82,9 +84,13 @@ class PDBCanvas(PDBWidget):
         self.source = convert_pdb_to_pages( self.pdb,
                 columns_in_page, glyphs_in_column ) 
         self.datasource = PagedDataSource( self.source )
-        self.datasource.current_page = self._search_chapter( self.chapter )
-        logging.debug( "do_calc() self.page=%d" % self.page )
+        found_page = self._search_chapter( self.chapter )
+        if not found_page:
+            found_page = 0
+        logging.debug( "found_page=%d", found_page )
+        self.datasource.current_page = found_page
         if self.page:
+            logging.debug( "self.page=%d", self.page)
             self.datasource.current_page=self.page
         self.old_rect=rect
         self.chapter_seg = rect.width/self.pdb.chapters
@@ -152,13 +158,15 @@ class PDBCanvas(PDBWidget):
         return len(pages)
 
     def _search_chapter(self, chapter):
-        found = 0
+        """
+        According the specified page number to search chapter.
+        Return the chapter number if found, else return None.
+        """
+        found = None
         for chap, n_in_page, page in self.source:
-            logging.debug( "(chap, n_in_page, page)=(%d, %d)" % (
-                        chap, n_in_page ) )
             if chap == chapter:
+                found = chap
                 break
-            found = found + 1
         return found
 
     def scroll_event(self, widget, event):
