@@ -1,3 +1,10 @@
+pymbook (0.4.0-0) lucid; urgency=low
+
+  * Improve keyboard navigation.
+  * Implement state saving/loading.
+  * Use gtk configure event to decide whether to recalculate.
+  * Add logging. (Append log_filename in ~/.config/pymbook.conf)
+
 pymbook (0.3.1-0) lucid; urgency=low
 
   * 4th release.
