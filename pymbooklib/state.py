@@ -56,12 +56,18 @@ class State( object ):
     @staticmethod
     def check_filename(state_name):
         filename = State.config[config.ENTRY_CURRENT_PDB]
+        if len(filename)==0:
+            raise StateErrorException( "%s: %s" % (
+                        state_name, "len(filename)=0" ) )
+        if filename=="None":
+            filename = None
         if not filename:
             raise StateErrorException( state_name )
 
-        if len(filename) and State.window.open_pdb( filename ):
+        if State.window.open_pdb( filename ):
             State.window.pdb_filename = filename
         else:
+            logging.debug("Open '%s' fail." % filename )
             raise StateErrorException( state_name )
 
 class ShelfState( State ):
@@ -138,8 +144,8 @@ class ReadingState( State ):
         super(ReadingState, self).load()
         self.check_filename( repr(self) )
 
-        if not self.config[config.ENTRY_CURRENT_CHAPTER] or \
-            not self.config[config.ENTRY_CURRENT_PAGE]:
+        if self.config[config.ENTRY_CURRENT_CHAPTER]==None or \
+            self.config[config.ENTRY_CURRENT_PAGE]==None:
             raise StateErrorException( repr(self) )
 
         chapter = self.config[config.ENTRY_CURRENT_CHAPTER]

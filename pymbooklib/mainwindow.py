@@ -57,10 +57,13 @@ class MainWindow:
             self.pdb_filename = filename
 
     def initialize_logging(self):
+        import time
         if self.config[config.ENTRY_LOG_FILENAME]:
             logging.basicConfig(
                     filename=self.config[config.ENTRY_LOG_FILENAME],
                     level=logging.DEBUG)
+        logging.info( ">>> Start logging at %s" %  time.strftime(
+                    "%Y-%m-%d %X", time.localtime() ) )
 
     def load_ui(self, builder):
         result = True
@@ -184,10 +187,10 @@ class MainWindow:
         label = gtk.Label(_("Text"))
         self.notebook.append_page(frame, label)
 
-        self.restore_state()
-
-        frame.show()
         self.pdb_canvas.show()
+        frame.show()
+
+        self.restore_state()
 
         # connect signals
         self.bookshelf.connect("book_selected", self.bookshelf_book_selected_cb )
@@ -206,6 +209,7 @@ class MainWindow:
             self.pdb_canvas.set_pdb( self.pdb )
             self.pdb_canvas.redraw_canvas()
         except PDBException, ex:
+            logging.error( "Cannot open specified pdb: %s", repr(ex) )
             dialog=gtk.MessageDialog(
                     self.window, 
                     gtk.DIALOG_MODAL, 
@@ -214,6 +218,9 @@ class MainWindow:
                     _("Cannot open specified pdb."))
             result = dialog.run()
             dialog.destroy()
+            return False
+        except BaseException, ex:
+            logging.error( "Other exception: %s" % repr(ex) )
             return False
         self.window.set_title( "%s - %s" % ( APP_NAME, self.pdb.book_name ) )
         uri = urlparse.urljoin( "file://", pdb_filename.encode('utf-8') )
@@ -231,6 +238,7 @@ class MainWindow:
     	gtk.main_quit()
 
     def window1_delete_event_cb(self, widget, event, data=None):
+        self.state.save()
         self.act_quit.activate()
 
     def select_recent_cb(self, menu):
