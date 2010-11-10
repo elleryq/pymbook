@@ -39,7 +39,7 @@ from state import ShelfState, ShelfCanBackState
 from state import ContentState, ContentCanBackState 
 from state import State, ReadingState
 from translation import _
-from utils import get_font_tuple
+from utils import get_font_tuple, convert_pdb_to_pages
 
 class MainWindow:
     """MainWindow"""
@@ -339,6 +339,42 @@ class MainWindow:
 
     def act_return_activate_cb( self, b ):
         self.state = ReadingState().enter()
+
+    def act_export2text_activate_cb( self, b ):
+        dialog=gtk.FileChooserDialog( _("Save..."),
+                None,
+                gtk.FILE_CHOOSER_ACTION_SAVE,
+                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                 gtk.STOCK_SAVE_AS, gtk.RESPONSE_OK) )
+        dialog.set_default_response(gtk.RESPONSE_OK)
+
+        _filter=gtk.FileFilter()
+        _filter.set_name(_("Text files"))
+        _filter.add_pattern("*.txt")
+        dialog.add_filter(_filter)
+    
+        response=dialog.run()
+        dialog.destroy()
+        if response==gtk.RESPONSE_OK:
+            text_filename = dialog.get_filename()
+        elif response==gtk.RESPONSE_CANCEL:
+            return
+        pages = convert_pdb_to_pages( self.pdb, 24, 35 )
+        f = open( text_filename, "wt" )
+        for chapter_num, num_in_chapter, page in pages:
+            for col in page:
+                f.write( u''.join(col).encode('utf-8') )
+                f.write( '\n' )
+        f.close()
+        dialog=gtk.MessageDialog(
+                self.window, 
+                gtk.DIALOG_MODAL, 
+                gtk.MESSAGE_INFO, 
+                gtk.BUTTONS_CLOSE, 
+                _("Converting is finished.  The file is at '%s'"
+                    ) % text_filename )
+        result = dialog.run()
+        dialog.destroy()
 
     def pdb_contents_chapter_selected_cb(self, widget, chapter):
         if chapter==-1:
