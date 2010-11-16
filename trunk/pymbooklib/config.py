@@ -70,7 +70,7 @@ class Config(object):
         import io
         self.config = ConfigParser.RawConfigParser()
         if os.path.exists( os.path.expanduser( self.filename ) ):
-            self.config.readfp( open( os.path.expanduser( CONFIG_FILENAME ) ) )
+            self.config.readfp( open( os.path.expanduser( self.filename ) ) )
         else:
             self.config.readfp( io.BytesIO(DEFAULT_CONFIG_CONTENT) )
 
