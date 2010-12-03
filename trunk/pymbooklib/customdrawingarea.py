@@ -78,5 +78,5 @@ class CustomDrawingArea(gtk.DrawingArea):
         import glib
         if self.timer:
             glib.source_remove( self.timer )
-        self.timer = glib.timeout_add( 500, self.redraw_canvas )
+        self.timer = glib.timeout_add( 200, self.redraw_canvas )
 
