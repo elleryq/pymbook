@@ -187,14 +187,18 @@ class PDBCanvas(PDBWidget):
         if not self.pdb:
             return flag
         flag = True
-        if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
+        prev_list = [ gtk.gdk.keyval_from_name("Page_Up"),
+                gtk.gdk.keyval_from_name("Up"),
+                gtk.gdk.keyval_from_name("k"),
+                gtk.gdk.keyval_from_name("K") ]
+        next_list = [ gtk.gdk.keyval_from_name("Page_Down"),
+                gtk.gdk.keyval_from_name("Space"),
+                gtk.gdk.keyval_from_name("Down"),
+                gtk.gdk.keyval_from_name("j"),
+                gtk.gdk.keyval_from_name("J") ]
+        if event.keyval in prev_list:
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down") or \
-            event.keyval==gtk.gdk.keyval_from_name("Space"):
-            self.datasource.go_next()
-        elif event.keyval==gtk.gdk.keyval_from_name("Up"):
-            self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Down"):
+        elif event.keyval in next_list:
             self.datasource.go_next()
         else:
             flag = False
