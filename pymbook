@@ -18,7 +18,6 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 """pymbook"""
 import sys
-import os
 
 import pygtk
 pygtk.require('2.0')
@@ -26,13 +25,14 @@ import gtk
 
 from pymbooklib.mainwindow import MainWindow
 
-def main( arg ):
-    if len(arg)>0:
-        window = MainWindow( arg[0] )
+
+def main(arg):
+    if len(arg) > 0:
+        window = MainWindow(arg[0])
     else:
         window = MainWindow()
     gtk.main()
 
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-
