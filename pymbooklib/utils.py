@@ -20,39 +20,46 @@
 """Utilities"""
 from pdb import PDBFile
 
-def find_pdbs( path ):
+
+def find_pdbs(path):
     """Find all pdb/updb files according the specified path(absolute path).
     And return the filename lists which contain full path.
     """
     import glob
     import os
-    pdbfiles = glob.glob( os.path.join( path, "*.pdb" ) ) + glob.glob( os.path.join( path, "*.updb" ) )
+    pdbfiles = glob.glob(os.path.join(path, "*.pdb"))+glob.glob(
+            os.path.join(path, "*.updb"))
     books = []
     for pdb_filename in pdbfiles:
         try:
-            books.append( ( PDBFile( pdb_filename ).parse().book_name, pdb_filename ) )
+            books.append((
+                PDBFile(pdb_filename).parse().book_name,
+                pdb_filename))
         except Exception, e:
             print pdb_filename, ':',  e
-    return sorted( books )
+    return sorted(books)
 
-def get_font_tuple( font_name ):
+
+def get_font_tuple(font_name):
     import pango
-    fontdesc = pango.FontDescription( font_name )
+    fontdesc = pango.FontDescription(font_name)
     font_name = fontdesc.get_family()
     font_size = fontdesc.get_size()/pango.SCALE
     return (font_name, font_size)
 
+
 def convert_columns_to_pages(columns, columns_in_page):
-    pages=[]
+    pages = []
     page_len = len(columns)/columns_in_page+1
     for i in range(page_len):
-        pages.append( 
+        pages.append(
                 columns[columns_in_page*i:columns_in_page*(i+1)])
     return pages
 
-def convert_pdb_to_pages( pdb, columns_in_page, glyphs_in_column ):
-    def convert_text_to_pages( chapter_num, text, columns_in_page,
-            glyphs_in_column ):
+
+def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
+    def convert_text_to_pages(chapter_num, text, columns_in_page,
+            glyphs_in_column):
         pages = []
         column = []
         column_count = 0
@@ -86,12 +93,11 @@ def convert_pdb_to_pages( pdb, columns_in_page, glyphs_in_column ):
     pages = []
     for chapter_num in range(pdb.chapters):
         content = pdb.chapter(chapter_num)
-        pages.extend( 
-                convert_text_to_pages( 
-                    chapter_num, content, 
-                    columns_in_page, glyphs_in_column ) )
+        pages.extend(
+                convert_text_to_pages(
+                    chapter_num, content,
+                    columns_in_page, glyphs_in_column))
     return pages
 
 if __name__ == "__main__":
-    print find_pdbs( "" )
-
+    print find_pdbs("")
