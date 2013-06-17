@@ -42,15 +42,27 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_Open"/>
+    <addaction name="actionExport_to_Text"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreference"/>
+    <addaction name="separator"/>
+    <addaction name="actionRecent_files"/>
     <addaction name="separator"/>
     <addaction name="actionE_xit"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
-     <string>&amp;About</string>
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuGo">
+    <property name="title">
+     <string>Go</string>
     </property>
    </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuGo"/>
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -62,6 +74,26 @@
   <action name="actionE_xit">
    <property name="text">
     <string>E&amp;xit</string>
+   </property>
+  </action>
+  <action name="actionExport_to_Text">
+   <property name="text">
+    <string>Export to Text</string>
+   </property>
+  </action>
+  <action name="actionPreference">
+   <property name="text">
+    <string>Preference</string>
+   </property>
+  </action>
+  <action name="actionRecent_files">
+   <property name="text">
+    <string>Recent files</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>
