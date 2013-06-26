@@ -18,16 +18,16 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """PDBWidget"""
-import gtk
-from customdrawingarea import CustomDrawingArea
+from PySide.QtGui import QWidget
 
-class PDBWidget(CustomDrawingArea):
-    def __init__(self):
+
+class PDBWidget(QWidget):
+    def __init__(self, parent=None):
         super(PDBWidget, self).__init__()
         self.pdb = None
 
-    def set_font(self, font):
-        super(PDBWidget, self).set_font(font)
+    def setFont(self, font):
+        super(PDBWidget, self).setFont(font)
         if self.pdb:
             self.do_calc()
 
@@ -37,3 +37,21 @@ class PDBWidget(CustomDrawingArea):
 
     def do_calc(self):
         pass
+
+
+if __name__ == "__main__":
+    import sys
+    from PySide.QtGui import QApplication
+    from PySide.QtGui import QMainWindow
+    from PySide.QtCore import QPoint
+
+    class MainWindow(QMainWindow):
+        def __init__(self, parent=None):
+            super(MainWindow, self).__init__(parent)
+            self.widget = PDBWidget(self)
+            self.move(QPoint(10, 10))
+
+    app = QApplication(sys.argv)
+    frame = MainWindow()
+    frame.show()
+    app.exec_()
