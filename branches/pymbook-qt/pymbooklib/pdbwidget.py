@@ -23,7 +23,7 @@ from PySide.QtGui import QWidget
 
 class PDBWidget(QWidget):
     def __init__(self, parent=None):
-        super(PDBWidget, self).__init__()
+        super(PDBWidget, self).__init__(parent)
         self.pdb = None
 
     def setFont(self, font):
