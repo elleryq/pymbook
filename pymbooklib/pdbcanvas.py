@@ -193,6 +193,17 @@ class PDBCanvas(PDBWidget):
         super(PDBCanvas, self).resizeEvent(event)
         self.do_calc()
 
+    def wheelEvent(self, event):
+        if not self.pdb:
+            return False
+
+        if event.delta() > 0:
+            self.datasource.go_previous()
+        else:
+            self.datasource.go_next()
+        self.redraw_later()
+        event.accept()
+
 if __name__ == "__main__":
     import sys
     import os
