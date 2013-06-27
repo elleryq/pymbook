@@ -43,7 +43,6 @@ class PDBWidget(QWidget):
         pass
 
     def redraw_canvas(self):
-        print("redraw_canvas")
         self.repaint(self.rect())
 
     def _draw_indicator(self, painter, x, y, seg):
