@@ -19,12 +19,16 @@
 
 """PDBWidget"""
 from PySide.QtGui import QWidget
+from PySide.QtGui import QPen
+from PySide.QtCore import QTimer
+from PySide.QtCore import Qt
 
 
 class PDBWidget(QWidget):
     def __init__(self, parent=None):
         super(PDBWidget, self).__init__(parent)
         self.pdb = None
+        self.timer = None
 
     def setFont(self, font):
         super(PDBWidget, self).setFont(font)
@@ -37,6 +41,42 @@ class PDBWidget(QWidget):
 
     def do_calc(self):
         pass
+
+    def redraw_canvas(self):
+        print("redraw_canvas")
+        self.repaint(self.rect())
+
+    def _draw_indicator(self, painter, x, y, seg):
+        """
+        Draw indicator, it just like scroll bar, but you can not drag it.
+        """
+        painter.save()
+        pen = QPen()
+        pen.setColor(Qt.GlobalColor.red)
+        pen.setWidth(3)
+        painter.setPen(pen)
+        painter.drawLine(x, y, x+seg, y)
+        painter.restore()
+
+    def _draw_line(self, painter, pos1, pos2):
+        """
+        Draw line.
+        pos1 and pos2 are tutple contain x and y.
+        """
+        x1, y1 = pos1
+        x2, y2 = pos2
+        painter.save()
+        painter.drawLine(x1, y1, x2, y2)
+        painter.restore()
+
+    def redraw_later(self):
+        if self.timer:
+            self.timer.stop()
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(200)
+        self.timer.timeout.connect(self.redraw_canvas)
+        self.timer.start()
 
 
 if __name__ == "__main__":
