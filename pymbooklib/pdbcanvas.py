@@ -214,7 +214,7 @@ if __name__ == "__main__":
         def __init__(self, parent=None):
             super(MainWindow, self).__init__(parent)
             self.widget = PDBCanvas(self)
-            self.pdbfile = PDBFile(os.path.realpath("../D55d.updb")).parse()
+            self.pdbfile = PDBFile(os.path.realpath(sys.argv[-1])).parse()
             self.widget.set_pdb(self.pdbfile)
             self.setCentralWidget(self.widget)
 
