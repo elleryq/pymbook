@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) 2010 elleryq@gmail.com
+#  Copyright (C) 2013 elleryq@gmail.com
 #
 #  This file is part of pymbook
 #  pymbook is free software: you can redistribute it and/or modify
@@ -94,12 +94,6 @@ class PDBCanvas(PDBWidget):
             self.datasource.current_page = self.page
         self.old_rect = rect
         self.chapter_seg = rect.width()/self.pdb.chapters
-
-    #def configure(self, widget, event):
-    #    if not self.pdb:
-    #        return False
-    #
-    #    self.do_calc()
 
     def paintEvent(self, event):
         if not self.pdb:
@@ -217,6 +211,7 @@ if __name__ == "__main__":
             self.pdbfile = PDBFile(os.path.realpath(sys.argv[-1])).parse()
             self.widget.set_pdb(self.pdbfile)
             self.setCentralWidget(self.widget)
+            self.resize(800, 600)
 
     app = QApplication(sys.argv)
     frame = MainWindow()
