@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) 2010 elleryq@gmail.com
+#  Copyright (C) 2013 elleryq@gmail.com
 #
 #  This file is part of pymbook
 #  pymbook is free software: you can redistribute it and/or modify
@@ -18,30 +18,32 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """Bookshelf widget"""
-import gobject
-import gtk
 import logging
 
 from utils import find_pdbs
 from utils import convert_columns_to_pages
-from customdrawingarea import CustomDrawingArea
 from pageddatasource import PagedDataSource
+from PySide.QtCore import Qt
+from PySide.QtGui import QWidget
+from PySide.QtGui import QPainter
+from PySide.QtGui import QPen
 
-class BookshelfWidget(CustomDrawingArea):
-    __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,
-                                      (gobject.TYPE_INT,)))
 
-    def __init__( self, shelf_path ):
+class BookshelfWidget(QWidget):
+    #__gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
+    #                                  gobject.TYPE_NONE,
+    #                                  (gobject.TYPE_INT,)))
+
+    def __init__(self, shelf_path):
         super(BookshelfWidget, self).__init__()
-        self.books = find_pdbs( shelf_path )
+        self.books = find_pdbs(shelf_path)
 
-        self.connect("expose_event", self.expose)
-        self.connect("scroll-event", self.scroll_event )
-        self.connect("button_release_event", self.button_release)
-        self.connect("motion-notify-event", self.motion_notify)
-        self.connect("key-press-event", self.key_press)
-        self.connect("configure-event", self.configure )
+        #self.connect("expose_event", self.expose)
+        #self.connect("scroll-event", self.scroll_event )
+        #self.connect("button_release_event", self.button_release)
+        #self.connect("motion-notify-event", self.motion_notify)
+        #self.connect("key-press-event", self.key_press)
+        #self.connect("configure-event", self.configure )
 
     def get_cell_size(self):
         return (self.font_size*2, self.font_size+self.font_size/3)
@@ -49,22 +51,23 @@ class BookshelfWidget(CustomDrawingArea):
     def do_calc(self):
         rect = self.get_allocation()
         cell_width, cell_height = self.get_cell_size()
-        self.x_pos_list = range(rect.width-cell_width*2, 
-                rect.x+cell_width, -cell_width)
-        self.y_pos_list = range(0, rect.height, (rect.height-1) )
-        self.regions = [ 
-            gtk.gdk.region_rectangle( (x, self.y_pos_list[0], 
-                        cell_width, self.y_pos_list[-1]-self.y_pos_list[0]
-                    ) ) for x in self.x_pos_list[1:]]
-        columns_in_page = len( self.x_pos_list )-1
-        self.datasource = PagedDataSource( convert_columns_to_pages(
-                    self.books, columns_in_page ) )
-    
+        self.x_pos_list = range(rect.width-cell_width*2,
+                                rect.x+cell_width, -cell_width)
+        self.y_pos_list = range(0, rect.height, (rect.height-1))
+        self.regions = [
+            gtk.gdk.region_rectangle((x, self.y_pos_list[0],
+                                      cell_width,
+                                      self.y_pos_list[-1]-self.y_pos_list[0])
+                                    ) for x in self.x_pos_list[1:]]
+        columns_in_page = len(self.x_pos_list)-1
+        self.datasource = PagedDataSource(convert_columns_to_pages(
+                                          self.books, columns_in_page))
+
     def draw_string(self, cx, s, x, y, limit):
         cell_width, cell_height = self.get_cell_size()
         for c in s:
-            cx.move_to( x, y )
-            cx.show_text( c )
+            cx.move_to(x, y)
+            cx.show_text(c)
             y = y + cell_height
             if y > limit:
                 break
@@ -79,74 +82,74 @@ class BookshelfWidget(CustomDrawingArea):
         if not self.books:
             return False
 
-        cx=widget.window.cairo_create()
+        cx = widget.window.cairo_create()
 
         # get canvas size
-        rect=self.get_allocation()
+        rect = self.get_allocation()
 
         cell_width, cell_height = self.get_cell_size()
 
         # draw grid
-        cx.set_source_rgb( 0, 0, 0 )
+        cx.set_source_rgb(0, 0, 0)
         for x in self.x_pos_list:
-            self._draw_line( cx, (x, self.y_pos_list[0]),
-                    (x, self.y_pos_list[-1]) )
+            self._draw_line(cx, (x, self.y_pos_list[0]),
+                            (x, self.y_pos_list[-1]))
         for y in self.y_pos_list:
-            self._draw_line( cx, (self.x_pos_list[0], y),
-                    (self.x_pos_list[-1], y) )
+            self._draw_line(cx, (self.x_pos_list[0], y),
+                            (self.x_pos_list[-1], y))
 
         # draw page indicator
-        if self.datasource.count_pages()>1:
+        if self.datasource.count_pages() > 1:
             seg = rect.width/self.datasource.count_pages()
             x = rect.width-(self.datasource.current_page+1)*seg
-            self._draw_indicator( cx, x, rect.height-1, seg )
+            self._draw_indicator(cx, x, rect.height-1, seg)
 
         # Show shelf
         cx.save()
         if self.font_name and self.font_size:
-            cx.select_font_face( self.font_name )
-            cx.set_font_size( self.font_size)
+            cx.select_font_face(self.font_name)
+            cx.set_font_size(self.font_size)
         start_x = 1
         start_y = 0
-        columns_in_page=len( self.x_pos_list )
+        columns_in_page = len(self.x_pos_list)
         try:
             padding_left = cell_width/4
             for book_name, pdb_filename in self.datasource.get_current_page():
-                self.draw_string( cx, book_name, 
-                        self.x_pos_list[start_x] + padding_left,
-                        self.y_pos_list[start_y] + cell_height, 
-                        self.y_pos_list[-1] )
+                self.draw_string(cx, book_name,
+                                 self.x_pos_list[start_x] + padding_left,
+                                 self.y_pos_list[start_y] + cell_height,
+                                 self.y_pos_list[-1])
                 start_x = start_x + 1
-                if start_x>columns_in_page:
+                if start_x > columns_in_page:
                     start_x = 1
         except IndexError, e:
-            logging.error( e )
-            logging.debug( 
+            logging.error(e)
+            logging.debug(
                 "start_x=%d len(x_pos_list)=%d columns_in_page=%d len(datasource.get_current_page())" % (
                     start_x, len(self.x_pos_list),
-                    columns_in_page, 
-                    len(self.datasource.get_current_page()) ) )
+                    columns_in_page,
+                    len(self.datasource.get_current_page())))
         cx.restore()
 
         return False
 
-    def scroll_event(self, widget, event):
-        if not self.books:
+    def wheelEvent(self, event):
+        if not self.pdb:
             return False
 
-        if event.direction==gtk.gdk.SCROLL_UP:
+        if event.delta() > 0:
             self.datasource.go_previous()
-        elif event.direction==gtk.gdk.SCROLL_DOWN:
+        else:
             self.datasource.go_next()
         self.redraw_later()
-        return True
+        event.accept()
 
     def button_release(self, widget, event):
         if not self.books:
             return False
-        self.emit("book_selected", self.which_book(event.x, event.y ))
+        #self.emit("book_selected", self.which_book(event.x, event.y ))
         return False
-    
+
     def motion_notify(self, widget, event):
         if not self.books:
             return False
@@ -154,18 +157,16 @@ class BookshelfWidget(CustomDrawingArea):
         #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
         return False
 
-    def key_press(self, widget, event ):
-        if not self.books:
-            return False
+    def keyPressEvent(self, event):
+        flag = False
+        if not self.pdb:
+            return flag
         flag = True
-        if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
+        prev_list = [Qt.Key_PageUp, Qt.Key_Up, Qt.Key_K]
+        next_list = [Qt.Key_PageDown, Qt.Key_Down, Qt.Key_J]
+        if event.key() in prev_list:
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down") or \
-            event.keyval==gtk.gdk.keyval_from_name("Space"):
-            self.datasource.go_next()
-        elif event.keyval==gtk.gdk.keyval_from_name("Up"):
-            self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Down"):
+        elif event.key() in next_list:
             self.datasource.go_next()
         else:
             flag = False
@@ -173,18 +174,35 @@ class BookshelfWidget(CustomDrawingArea):
         return flag
 
     def which_book(self, x, y):
-        selected=0
+        selected = 0
         for r in self.regions:
-            if r.point_in( int(x), int(y) ):
+            if r.point_in(int(x), int(y)):
                 break
-            selected=selected+1
-        if self.datasource.current_page>0:
+            selected = selected+1
+        if self.datasource.current_page > 0:
             for page in self.datasource.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
         book = selected
-        if book>=len(self.books):
+        if book >= len(self.books):
             book = -1
         return book
 
-    def get_book( self, idx ):
-        return self.books[ idx ]
+    def get_book(self, idx):
+        return self.books[idx]
+
+if __name__ == "__main__":
+    import sys
+    from PySide.QtGui import QApplication
+    from PySide.QtGui import QMainWindow
+
+    class MainWindow(QMainWindow):
+        def __init__(self, parent=None):
+            super(MainWindow, self).__init__(parent)
+            self.widget = BookshelfWidget(self)
+            self.setCentralWidget(self.widget)
+            self.resize(800, 600)
+
+    app = QApplication(sys.argv)
+    frame = MainWindow()
+    frame.show()
+    app.exec_()
