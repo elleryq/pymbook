@@ -23,6 +23,7 @@ import logging
 from pdbwidget import PDBWidget
 from pageddatasource import PagedDataSource
 from utils import convert_pdb_to_pages
+from PySide.QtCore import Signal
 from PySide.QtCore import Qt
 from PySide.QtGui import QPainter
 from PySide.QtGui import QPen
@@ -30,9 +31,7 @@ from pdb import PDBFile
 
 
 class PDBCanvas(PDBWidget):
-    #__gsignals__ = dict(tell_callback=(gobject.SIGNAL_RUN_FIRST,
-    #                                  gobject.TYPE_NONE,
-    #                                  (gobject.TYPE_INT, gobject.TYPE_INT)))
+    tell = Signal((int, int,))
 
     def __init__(self, parent=None):
         super(PDBCanvas, self).__init__(parent)
@@ -144,8 +143,7 @@ class PDBCanvas(PDBWidget):
         painter.restore()
 
     def _tell(self):
-        #self.emit("tell_callback", self.chapter, self.datasource.current_page)
-        pass
+        self.tell.emit(self.chapter, self.datasource.current_page)
 
     def _count_chapter_pages(self, chapter):
         if not self.source:
@@ -204,12 +202,16 @@ if __name__ == "__main__":
     from PySide.QtGui import QApplication
     from PySide.QtGui import QMainWindow
 
+    def tell_func(chapter, current_page):
+        print(chapter, current_page)
+
     class MainWindow(QMainWindow):
         def __init__(self, parent=None):
             super(MainWindow, self).__init__(parent)
             self.widget = PDBCanvas(self)
             self.pdbfile = PDBFile(os.path.realpath(sys.argv[-1])).parse()
             self.widget.set_pdb(self.pdbfile)
+            self.widget.tell.connect(tell_func)
             self.setCentralWidget(self.widget)
             self.resize(800, 600)
 
