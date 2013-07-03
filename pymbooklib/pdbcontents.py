@@ -25,6 +25,7 @@ from pageddatasource import PagedDataSource
 from utils import convert_columns_to_pages
 from PySide.QtCore import Qt
 from PySide.QtCore import QPoint
+from PySide.QtCore import Signal
 from PySide.QtGui import QPainter
 from PySide.QtGui import QPen
 from PySide.QtGui import QRegion
@@ -32,9 +33,7 @@ from pdb import PDBFile
 
 
 class PDBContents(PDBWidget):
-    #__gsignals__ = dict(chapter_selected=(gobject.SIGNAL_RUN_FIRST,
-    #                                  gobject.TYPE_NONE,
-    #                                  (gobject.TYPE_INT,)))
+    chapter_selected = Signal((int,))
 
     def __init__(self, parent=None):
         super(PDBContents, self).__init__(parent)
@@ -114,7 +113,8 @@ class PDBContents(PDBWidget):
         except IndexError, e:
             logging.error(e)
             logging.debug(
-                "start_x=%d len(x_pos_list)=%d columns_in_page=%d len(datasource.get_current_page())" % (
+                "start_x=%d len(x_pos_list)=%d columns_in_page=%d " +
+                "len(datasource.get_current_page())" % (
                     start_x, len(self.x_pos_list),
                     columns_in_page,
                     len(self.datasource.get_current_page())))
@@ -137,18 +137,18 @@ class PDBContents(PDBWidget):
         self.redraw_later()
         event.accept()
 
-    def button_release(self, widget, event):
+    def mousePressEvent(self, event):
         if not self.pdb:
             return False
-        #self.emit("chapter_selected", self.which_chapter(event.x, event.y))
+        self.chapter_selected.emit(self.which_chapter(event.x(), event.y()))
         return False
 
-    def motion_notify(self, widget, event):
+    def mouseMoveEvent(self, event):
         if not self.pdb:
             return False
         # TODO:
-        logging.debug("which chapter? %d" % 
-                self.which_chapter(event.x, event.y) )
+        logging.debug("which chapter? %d" % self.which_chapter(
+            event.x(), event.y()))
         return False
 
     def keyPressEvent(self, event):
@@ -187,12 +187,16 @@ if __name__ == "__main__":
     from PySide.QtGui import QApplication
     from PySide.QtGui import QMainWindow
 
+    def clicked(chapter):
+        print(chapter)
+
     class MainWindow(QMainWindow):
         def __init__(self, parent=None):
             super(MainWindow, self).__init__(parent)
             self.widget = PDBContents(self)
             self.pdbfile = PDBFile(os.path.realpath(sys.argv[-1])).parse()
             self.widget.set_pdb(self.pdbfile)
+            self.widget.chapter_selected.connect(clicked)
             self.setCentralWidget(self.widget)
             self.resize(800, 600)
 
