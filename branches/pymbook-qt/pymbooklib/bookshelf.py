@@ -24,98 +24,84 @@ from utils import find_pdbs
 from utils import convert_columns_to_pages
 from pageddatasource import PagedDataSource
 from PySide.QtCore import Qt
-from PySide.QtGui import QWidget
+from PySide.QtCore import Signal
+from PySide.QtCore import QPoint
 from PySide.QtGui import QPainter
+from PySide.QtGui import QRegion
 from PySide.QtGui import QPen
+from pdbwidget import PDBWidget
 
 
-class BookshelfWidget(QWidget):
-    #__gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
-    #                                  gobject.TYPE_NONE,
-    #                                  (gobject.TYPE_INT,)))
+class BookshelfWidget(PDBWidget):
+    book_selected = Signal((str,))
 
-    def __init__(self, shelf_path):
-        super(BookshelfWidget, self).__init__()
+    def __init__(self, parent=None, shelf_path=""):
+        super(BookshelfWidget, self).__init__(parent)
         self.books = find_pdbs(shelf_path)
-
-        #self.connect("expose_event", self.expose)
-        #self.connect("scroll-event", self.scroll_event )
-        #self.connect("button_release_event", self.button_release)
-        #self.connect("motion-notify-event", self.motion_notify)
-        #self.connect("key-press-event", self.key_press)
-        #self.connect("configure-event", self.configure )
+        self.do_calc()
 
     def get_cell_size(self):
-        return (self.font_size*2, self.font_size+self.font_size/3)
+        return (self.font().pointSize()*2,
+                self.font().pointSize()+self.font().pointSize()/3)
 
     def do_calc(self):
-        rect = self.get_allocation()
+        rect = self.rect()
         cell_width, cell_height = self.get_cell_size()
-        self.x_pos_list = range(rect.width-cell_width*2,
-                                rect.x+cell_width, -cell_width)
-        self.y_pos_list = range(0, rect.height, (rect.height-1))
+        self.x_pos_list = range(rect.width()-cell_width*2,
+                                rect.x()+cell_width, -cell_width)
+        self.y_pos_list = range(0, rect.height(), (rect.height()-1))
         self.regions = [
-            gtk.gdk.region_rectangle((x, self.y_pos_list[0],
-                                      cell_width,
-                                      self.y_pos_list[-1]-self.y_pos_list[0])
-                                    ) for x in self.x_pos_list[1:]]
+            QRegion(x, self.y_pos_list[0], cell_width,
+                    self.y_pos_list[-1]-self.y_pos_list[0])
+            for x in self.x_pos_list[1:]]
         columns_in_page = len(self.x_pos_list)-1
         self.datasource = PagedDataSource(convert_columns_to_pages(
                                           self.books, columns_in_page))
 
-    def draw_string(self, cx, s, x, y, limit):
+    def draw_string(self, painter, s, x, y, limit):
         cell_width, cell_height = self.get_cell_size()
         for c in s:
-            cx.move_to(x, y)
-            cx.show_text(c)
+            painter.drawText(x, y, c)
             y = y + cell_height
             if y > limit:
                 break
 
-    def configure(self, widget, event):
+    def paintEvent(self, event):
         if not self.books:
             return False
 
-        self.do_calc()
-
-    def expose(self, widget, event):
-        if not self.books:
-            return False
-
-        cx = widget.window.cairo_create()
+        painter = QPainter(self)
 
         # get canvas size
-        rect = self.get_allocation()
+        rect = self.rect()
 
         cell_width, cell_height = self.get_cell_size()
 
         # draw grid
-        cx.set_source_rgb(0, 0, 0)
+        painter.setPen(QPen(Qt.GlobalColor.black))
         for x in self.x_pos_list:
-            self._draw_line(cx, (x, self.y_pos_list[0]),
+            self._draw_line(painter, (x, self.y_pos_list[0]),
                             (x, self.y_pos_list[-1]))
         for y in self.y_pos_list:
-            self._draw_line(cx, (self.x_pos_list[0], y),
+            self._draw_line(painter, (self.x_pos_list[0], y),
                             (self.x_pos_list[-1], y))
 
         # draw page indicator
         if self.datasource.count_pages() > 1:
-            seg = rect.width/self.datasource.count_pages()
-            x = rect.width-(self.datasource.current_page+1)*seg
-            self._draw_indicator(cx, x, rect.height-1, seg)
+            seg = rect.width() / self.datasource.count_pages()
+            x = rect.width()-(self.datasource.current_page+1)*seg
+            self._draw_indicator(painter, x, rect.height()-1, seg)
 
         # Show shelf
-        cx.save()
-        if self.font_name and self.font_size:
-            cx.select_font_face(self.font_name)
-            cx.set_font_size(self.font_size)
+        painter.save()
+        painter.setFont(self.font())
         start_x = 1
         start_y = 0
         columns_in_page = len(self.x_pos_list)
         try:
             padding_left = cell_width/4
             for book_name, pdb_filename in self.datasource.get_current_page():
-                self.draw_string(cx, book_name,
+                self.draw_string(painter, book_name,
                                  self.x_pos_list[start_x] + padding_left,
                                  self.y_pos_list[start_y] + cell_height,
                                  self.y_pos_list[-1])
@@ -124,12 +110,12 @@ class BookshelfWidget(QWidget):
                     start_x = 1
         except IndexError, e:
             logging.error(e)
-            logging.debug(
-                "start_x=%d len(x_pos_list)=%d columns_in_page=%d len(datasource.get_current_page())" % (
-                    start_x, len(self.x_pos_list),
-                    columns_in_page,
-                    len(self.datasource.get_current_page())))
-        cx.restore()
+            logging.debug("start_x=%d len(x_pos_list)=%d columns_in_page=%d" +
+                          "len(datasource.get_current_page())" % (
+                          start_x, len(self.x_pos_list),
+                          columns_in_page,
+                          len(self.datasource.get_current_page())))
+        painter.restore()
 
         return False
 
@@ -144,18 +130,16 @@ class BookshelfWidget(QWidget):
         self.redraw_later()
         event.accept()
 
-    def button_release(self, widget, event):
+    def mousePressEvent(self, event):
         if not self.books:
             return False
-        #self.emit("book_selected", self.which_book(event.x, event.y ))
-        return False
+        self.book_selected.emit(self.which_book(event.x(), event.y()))
 
-    def motion_notify(self, widget, event):
+    def mouseMoveEvent(self, event):
         if not self.books:
             return False
         # TODO:
-        #print("which chapter? %d" % self.which_chapter(event.x, event.y) )
-        return False
+        print("which chapter? %d" % self.which_chapter(event.x(), event.y()))
 
     def keyPressEvent(self, event):
         flag = False
@@ -173,19 +157,23 @@ class BookshelfWidget(QWidget):
         self.redraw_later()
         return flag
 
+    def resizeEvent(self, event):
+        super(BookshelfWidget, self).resizeEvent(event)
+        self.do_calc()
+
     def which_book(self, x, y):
         selected = 0
         for r in self.regions:
-            if r.point_in(int(x), int(y)):
+            if r.contains(QPoint(int(x), int(y))):
                 break
             selected = selected+1
         if self.datasource.current_page > 0:
             for page in self.datasource.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
-        book = selected
-        if book >= len(self.books):
-            book = -1
-        return book
+        #print("selected={0}".format(selected))
+        if selected < len(self.books):
+            return self.books[selected][1]
+        return None
 
     def get_book(self, idx):
         return self.books[idx]
@@ -195,10 +183,14 @@ if __name__ == "__main__":
     from PySide.QtGui import QApplication
     from PySide.QtGui import QMainWindow
 
+    def clicked(book):
+        print(book)
+
     class MainWindow(QMainWindow):
         def __init__(self, parent=None):
             super(MainWindow, self).__init__(parent)
-            self.widget = BookshelfWidget(self)
+            self.widget = BookshelfWidget(self, sys.argv[1])
+            self.widget.book_selected.connect(clicked)
             self.setCentralWidget(self.widget)
             self.resize(800, 600)
 
