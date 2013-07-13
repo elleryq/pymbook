@@ -7,3 +7,6 @@ ui_mainwindow.py: mainwindow.ui
 testdata:
 	wget "http://www.haodoo.net/?M=d&P=D55d.updb" -O D55d.updb
 	wget "http://www.haodoo.net/?M=d&P=D55d.pdb" -O D55d.pdb
+
+test:
+	python -m unittest discover -s ./tests/ -p *Test.py
