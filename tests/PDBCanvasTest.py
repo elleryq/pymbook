@@ -21,7 +21,7 @@ class PDBCanvasTest(unittest.TestCase):
     def setUp(self):
         #self.app = QApplication(sys.argv)
         self.widget = PDBCanvas()
-        self.pdbfile = PDBFile(os.path.realpath("1287.pdb")).parse()
+        self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
         self.widget.set_pdb(self.pdbfile)
         self.widget.tell.connect(self.tell_func)
 
