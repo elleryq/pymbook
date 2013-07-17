@@ -30,9 +30,11 @@ PDB_CHAPTER_OFFSET = 78
 
 
 class PDBException(BaseException):
+
     """
     The exception throwed by PDBFile.
     """
+
     def __init__(self, value):
         self.value = value
 
@@ -41,10 +43,12 @@ class PDBException(BaseException):
 
 
 class BaseOperation(object):
+
     """
     Use template pattern to extract base operation.
     The real implementation is in UnicodeOperation and DblByteOperation.
     """
+
     def __init__(self):
         self.empty_str = None
         self.escape_char = None
@@ -74,6 +78,7 @@ class BaseOperation(object):
 
 
 class UnicodeOperation(BaseOperation):
+
     """
     Handle updb(unicode pdb) file.
     """
@@ -85,9 +90,9 @@ class UnicodeOperation(BaseOperation):
 
     def processString(self, raw_str):
         converted_text = []
-        count = len(raw_str)/2
+        count = len(raw_str) / 2
         for i in range(count):
-            ch = [ord(c) for c in raw_str[i*2:i*2+2]]
+            ch = [ord(c) for c in raw_str[i * 2:i * 2 + 2]]
             if not ch or len(ch) < 2 or (ch[0] == 0 and ch[1] == 0):
                 break
             converted_text.append(unichr((ch[1] << 8) + ch[0]))
@@ -104,6 +109,7 @@ class UnicodeOperation(BaseOperation):
 
 
 class DblByteOperation(BaseOperation):
+
     """
     Handle double byte pdb file.
     For now, the pdb files provided by haodoo are encoded with cp950.
@@ -127,7 +133,7 @@ class DblByteOperation(BaseOperation):
         try:
             result = unicode(s, "cp950", errors='ignore')
         except BaseException, e:
-            #print map(lambda c: "%x" % ord(c), str)
+            # print map(lambda c: "%x" % ord(c), str)
             raise e
         return result
 
@@ -140,9 +146,11 @@ class DblByteOperation(BaseOperation):
 
 
 class PDBFile:
+
     """
     The major class to read PDB file.
     """
+
     def __init__(self, pdb_filename):
         self.records = 0
         self.pdb_filename = ""
@@ -158,7 +166,7 @@ class PDBFile:
         # parse file header
         header = f.read(PDB_HEADER_SIZE)
         type_start_pos = PDB_HEADER_BOOK_TYPE
-        type_end_pos = PDB_HEADER_BOOK_TYPE+PDB_HEADER_BOOK_TYPE_LEN
+        type_end_pos = PDB_HEADER_BOOK_TYPE + PDB_HEADER_BOOK_TYPE_LEN
         book_type = header[type_start_pos:type_end_pos]
         if book_type == "MTIU":
             self.is_unicode = True
@@ -171,7 +179,7 @@ class PDBFile:
         else:
             raise PDBException("Not a PDB or uPDB")
         self.records = (ord(header[PDB_HEADER_RECORD]) << 8) + ord(
-            header[PDB_HEADER_RECORD+1])
+            header[PDB_HEADER_RECORD + 1])
 
     def __parseChapterOffsets(self, f):
         # get the offset of every chapters.
@@ -183,7 +191,7 @@ class PDBFile:
                     "Offset record size is not enough(8). %d" % i)
             offset = (ord(offset_record[0]) << 24) + (
                 ord(offset_record[1]) << 16) + (
-                    ord(offset_record[2]) << 8) + ord(offset_record[3])
+                ord(offset_record[2]) << 8) + ord(offset_record[3])
             self.chapter_start_offsets.append(offset)
         self.chapter_end_offsets = self.chapter_start_offsets[1:]
         f.seek(0, os.SEEK_END)

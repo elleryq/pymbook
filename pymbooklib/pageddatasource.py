@@ -21,19 +21,20 @@
 
 
 class PagedDataSource(object):
+
     def __init__(self, source):
         self.pages = source
         self.current_page = 0
 
     def go_previous(self):
-        self.current_page = self.current_page-1
+        self.current_page = self.current_page - 1
         if self.current_page < 0:
             self.current_page = 0
 
     def go_next(self):
-        self.current_page = self.current_page+1
+        self.current_page = self.current_page + 1
         if self.current_page >= len(self.pages):
-            self.current_page = len(self.pages)-1
+            self.current_page = len(self.pages) - 1
 
     def get_current_page(self):
         return self.pages[self.current_page]

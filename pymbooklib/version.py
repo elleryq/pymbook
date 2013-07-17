@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright (C) 2010 elleryq@gmail.com
+#  Copyright (C) 2013 elleryq@gmail.com
 #
 #  This file is part of pymbook
 #  pymbook is free software: you can redistribute it and/or modify
