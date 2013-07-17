@@ -18,21 +18,27 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 """pymbook"""
 import sys
+import os
 
-from PySide.QtGui import QMainWindow
-from PySide.QtGui import QPushButton
 from PySide.QtGui import QApplication
-from PySide.QtGui import QMessageBox
+from PySide.QtGui import QMainWindow
+from PySide.QtGui import QWidget
+from pymbooklib.pdbcanvas import PDBCanvas
+from pymbooklib.pdb import PDBFile
 
 from ui_mainwindow import Ui_MainWindow
 
 
-class MainWindow(QMainWindow, Ui_MainWindow):
+class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.setupUi(self)
-        self.btnHello.clicked.connect(self.hello)
-        self.actionE_xit.triggered.connect(self.close)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        #self.pdbcanvas = PDBCanvas()
+        #self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
+        #self.pdbcanvas.set_pdb(self.pdbfile)
+        #self.verticalLayout_3.addWidget(self.pdbcanvas)
+        self.ui.actionE_xit.triggered.connect(self.close)
 
     def hello(self):
         QMessageBox.information(self, "Hello", "Hello")
