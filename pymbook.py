@@ -22,11 +22,26 @@ import os
 
 from PySide.QtGui import QApplication
 from PySide.QtGui import QMainWindow
-from PySide.QtGui import QWidget
+from PySide.QtGui import QMessageBox
+from PySide.QtGui import QTabWidget
 from pymbooklib.pdbcanvas import PDBCanvas
 from pymbooklib.pdb import PDBFile
 
 from ui_mainwindow import Ui_MainWindow
+
+
+class TabWidget(QTabWidget):
+    def __init__(self, parent=None):
+        super(TabWidget, self).__init__(parent)
+        #self.setTabsClosable(True)
+        #self.tabCloseRequested.connect(self.removeTab)
+        self.tabBar().setVisible(False)
+
+    #def tabInserted(self, index):
+    #    self.tabBar().setVisible(self.count() > 1)
+
+    #def tabRemoved(self, index):
+    #    self.tabBar().setVisible(self.count() > 1)
 
 
 class MainWindow(QMainWindow):
@@ -34,10 +49,15 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        #self.pdbcanvas = PDBCanvas()
-        #self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
-        #self.pdbcanvas.set_pdb(self.pdbfile)
-        #self.verticalLayout_3.addWidget(self.pdbcanvas)
+        self.ui.tab = TabWidget()
+
+        self.ui.pdbcanvas = PDBCanvas()
+        self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
+        self.ui.pdbcanvas.set_pdb(self.pdbfile)
+        self.ui.tab.addTab(self.ui.pdbcanvas, "")
+
+        self.ui.verticalLayout.addWidget(self.ui.tab)
+
         self.ui.actionE_xit.triggered.connect(self.close)
 
     def hello(self):
