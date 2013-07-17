@@ -28,10 +28,10 @@ try:
     _ = gettext.gettext
 except Exception, e:
     print e
-    def dummytrans (text):
+
+    def dummytrans(text):
         """A _ function for systems without gettext. Effectively a NOOP"""
         return(text)
 
     _ = dummytrans
-    print( "use dummytrans" )
-
+    print("use dummytrans")

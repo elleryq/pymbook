@@ -27,7 +27,7 @@ def find_pdbs(path):
     """
     import glob
     import os
-    pdbfiles = glob.glob(os.path.join(path, "*.pdb"))+glob.glob(
+    pdbfiles = glob.glob(os.path.join(path, "*.pdb")) + glob.glob(
         os.path.join(path, "*.updb"))
     books = []
     for pdb_filename in pdbfiles:
@@ -36,7 +36,7 @@ def find_pdbs(path):
                 PDBFile(pdb_filename).parse().book_name,
                 pdb_filename))
         except Exception, e:
-            print pdb_filename, ':',  e
+            print(pdb_filename, ':', e)
     return sorted(books)
 
 
@@ -44,15 +44,15 @@ def get_font_tuple(font_name):
     import pango
     fontdesc = pango.FontDescription(font_name)
     font_name = fontdesc.get_family()
-    font_size = fontdesc.get_size()/pango.SCALE
+    font_size = fontdesc.get_size() / pango.SCALE
     return (font_name, font_size)
 
 
 def convert_columns_to_pages(columns, columns_in_page):
     pages = []
-    page_len = len(columns)/columns_in_page+1
+    page_len = len(columns) / columns_in_page + 1
     for i in range(page_len):
-        pages.append(columns[columns_in_page*i:columns_in_page*(i+1)])
+        pages.append(columns[columns_in_page * i:columns_in_page * (i + 1)])
     return pages
 
 
@@ -68,7 +68,7 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
         for c in text:
             if column_count >= columns_in_page:
                 pages.append((chapter_num, num_in_chapter, page))
-                num_in_chapter = num_in_chapter+1
+                num_in_chapter = num_in_chapter + 1
                 page = []
                 column_count = 0
                 glyphs = 0
@@ -97,4 +97,4 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
     return pages
 
 if __name__ == "__main__":
-    print find_pdbs("")
+    print(find_pdbs(""))

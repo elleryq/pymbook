@@ -41,20 +41,20 @@ class BookshelfWidget(PDBWidget):
         self.do_calc()
 
     def get_cell_size(self):
-        return (self.font().pointSize()*2,
-                self.font().pointSize()+self.font().pointSize()/3)
+        return (self.font().pointSize() * 2,
+                self.font().pointSize() + self.font().pointSize() / 3)
 
     def do_calc(self):
         rect = self.rect()
         cell_width, cell_height = self.get_cell_size()
-        self.x_pos_list = range(rect.width()-cell_width*2,
-                                rect.x()+cell_width, -cell_width)
-        self.y_pos_list = range(0, rect.height(), (rect.height()-1))
+        self.x_pos_list = range(rect.width() - cell_width * 2,
+                                rect.x() + cell_width, -cell_width)
+        self.y_pos_list = range(0, rect.height(), (rect.height() - 1))
         self.regions = [
             QRegion(x, self.y_pos_list[0], cell_width,
-                    self.y_pos_list[-1]-self.y_pos_list[0])
+                    self.y_pos_list[-1] - self.y_pos_list[0])
             for x in self.x_pos_list[1:]]
-        columns_in_page = len(self.x_pos_list)-1
+        columns_in_page = len(self.x_pos_list) - 1
         self.datasource = PagedDataSource(convert_columns_to_pages(
                                           self.books, columns_in_page))
 
@@ -89,8 +89,8 @@ class BookshelfWidget(PDBWidget):
         # draw page indicator
         if self.datasource.count_pages() > 1:
             seg = rect.width() / self.datasource.count_pages()
-            x = rect.width()-(self.datasource.current_page+1)*seg
-            self._draw_indicator(painter, x, rect.height()-1, seg)
+            x = rect.width() - (self.datasource.current_page + 1) * seg
+            self._draw_indicator(painter, x, rect.height() - 1, seg)
 
         # Show shelf
         painter.save()
@@ -99,7 +99,7 @@ class BookshelfWidget(PDBWidget):
         start_y = 0
         columns_in_page = len(self.x_pos_list)
         try:
-            padding_left = cell_width/4
+            padding_left = cell_width / 4
             for book_name, pdb_filename in self.datasource.get_current_page():
                 self.draw_string(painter, book_name,
                                  self.x_pos_list[start_x] + padding_left,
@@ -112,9 +112,9 @@ class BookshelfWidget(PDBWidget):
             logging.error(e)
             logging.debug("start_x=%d len(x_pos_list)=%d columns_in_page=%d" +
                           "len(datasource.get_current_page())" % (
-                          start_x, len(self.x_pos_list),
-                          columns_in_page,
-                          len(self.datasource.get_current_page())))
+                              start_x, len(self.x_pos_list),
+                              columns_in_page,
+                              len(self.datasource.get_current_page())))
         painter.restore()
 
         return False
@@ -166,11 +166,11 @@ class BookshelfWidget(PDBWidget):
         for r in self.regions:
             if r.contains(QPoint(int(x), int(y))):
                 break
-            selected = selected+1
+            selected = selected + 1
         if self.datasource.current_page > 0:
             for page in self.datasource.pages[:self.datasource.current_page]:
                 selected = selected + len(page)
-        #print("selected={0}".format(selected))
+        # print("selected={0}".format(selected))
         if selected < len(self.books):
             return self.books[selected][1]
         return None
@@ -187,6 +187,7 @@ if __name__ == "__main__":
         print(book)
 
     class MainWindow(QMainWindow):
+
         def __init__(self, parent=None):
             super(MainWindow, self).__init__(parent)
             self.widget = BookshelfWidget(self, sys.argv[1])

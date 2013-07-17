@@ -25,16 +25,21 @@ SHELF_TAB = 0
 CONTENT_TAB = 1
 CONTEXT_TAB = 2
 
+
 class StateErrorException(BaseException):
+
     """
     The exception throwed by State and inherited classes.
     """
-    def __init__(self, state_name ):
+
+    def __init__(self, state_name):
         self.state_name = state_name
+
     def __str__(self):
         return "Insufficent condition to enter '%s'." % self.state_name
 
-class State( object ):
+
+class State(object):
     config = None
     window = None
 
@@ -56,25 +61,27 @@ class State( object ):
     @staticmethod
     def check_filename(state_name):
         filename = State.config[config.ENTRY_CURRENT_PDB]
-        if len(filename)==0:
-            raise StateErrorException( "%s: %s" % (
-                        state_name, "len(filename)=0" ) )
-        if filename=="None":
+        if len(filename) == 0:
+            raise StateErrorException("%s: %s" % (
+                state_name, "len(filename)=0"))
+        if filename == "None":
             filename = None
         if not filename:
-            raise StateErrorException( state_name )
+            raise StateErrorException(state_name)
 
-        if State.window.open_pdb( filename ):
+        if State.window.open_pdb(filename):
             State.window.pdb_filename = filename
         else:
-            logging.debug("Open '%s' fail." % filename )
-            raise StateErrorException( state_name )
+            logging.debug("Open '%s' fail." % filename)
+            raise StateErrorException(state_name)
 
-class ShelfState( State ):
+
+class ShelfState(State):
+
     def enter(self):
-        self.window.btn_shelf.set_sensitive( True )
-        self.window.btn_content.set_sensitive( False )
-        self.window.btn_return.set_sensitive( False )
+        self.window.btn_shelf.set_sensitive(True)
+        self.window.btn_content.set_sensitive(False)
+        self.window.btn_return.set_sensitive(False)
         self.window.notebook.set_current_page(SHELF_TAB)
         self.window.bookshelf.grab_focus()
         return super(ShelfState, self).enter()
@@ -90,30 +97,34 @@ class ShelfState( State ):
     def __repr__(self):
         return "ShelfState"
 
-class ShelfCanBackState( ShelfState ):
+
+class ShelfCanBackState(ShelfState):
+
     def enter(self):
-        self.window.btn_return.set_sensitive( True )
+        self.window.btn_return.set_sensitive(True)
         return super(ShelfCanBackState, self).enter()
 
     def __repr__(self):
         return "ShelfCanBackState"
 
-class ContentState( State ):
+
+class ContentState(State):
+
     def enter(self):
-        self.window.btn_shelf.set_sensitive( True )
-        self.window.btn_content.set_sensitive( False )
-        self.window.btn_return.set_sensitive( False )
+        self.window.btn_shelf.set_sensitive(True)
+        self.window.btn_content.set_sensitive(False)
+        self.window.btn_return.set_sensitive(False)
         self.window.notebook.set_current_page(CONTENT_TAB)
         self.window.pdb_contents.grab_focus()
         return super(ContentState, self).enter()
 
     def load(self):
         super(ContentState, self).load()
-        self.check_filename( repr(self) )
+        self.check_filename(repr(self))
 
     def save(self):
         super(ContentState, self).save()
-        logging.info( self.window.pdb_filename )
+        logging.info(self.window.pdb_filename)
         self.config[config.ENTRY_STATE] = config.STATE_CONTENT
         self.config[config.ENTRY_CURRENT_PDB] = self.window.pdb_filename
         self.config[config.ENTRY_CURRENT_CHAPTER] = -1
@@ -123,30 +134,34 @@ class ContentState( State ):
     def __repr__(self):
         return "ContentState"
 
-class ContentCanBackState( ContentState ):
+
+class ContentCanBackState(ContentState):
+
     def enter(self):
-        self.window.btn_return.set_sensitive( True )
+        self.window.btn_return.set_sensitive(True)
         return super(ContentCanBackState, self).enter()
 
     def __repr__(self):
         return "ContentCanBackState"
 
-class ReadingState( State ):
+
+class ReadingState(State):
+
     def enter(self):
-        self.window.btn_shelf.set_sensitive( True )
-        self.window.btn_content.set_sensitive( True )
-        self.window.btn_return.set_sensitive( False )
+        self.window.btn_shelf.set_sensitive(True)
+        self.window.btn_content.set_sensitive(True)
+        self.window.btn_return.set_sensitive(False)
         self.window.notebook.set_current_page(CONTEXT_TAB)
         self.window.pdb_canvas.grab_focus()
         return super(ReadingState, self).enter()
 
     def load(self):
         super(ReadingState, self).load()
-        self.check_filename( repr(self) )
+        self.check_filename(repr(self))
 
-        if self.config[config.ENTRY_CURRENT_CHAPTER]==None or \
-            self.config[config.ENTRY_CURRENT_PAGE]==None:
-            raise StateErrorException( repr(self) )
+        if self.config[config.ENTRY_CURRENT_CHAPTER] == None or \
+                self.config[config.ENTRY_CURRENT_PAGE] == None:
+            raise StateErrorException(repr(self))
 
         chapter = self.config[config.ENTRY_CURRENT_CHAPTER]
         if chapter < 0:
@@ -154,9 +169,9 @@ class ReadingState( State ):
         page = self.config[config.ENTRY_CURRENT_PAGE]
         if page < 0:
             page = 0
-        logging.debug( "chapter=%d page=%d" % (chapter, page) )
-        self.window.pdb_canvas.set_chapter( chapter )
-        self.window.pdb_canvas.set_page( page )
+        logging.debug("chapter=%d page=%d" % (chapter, page))
+        self.window.pdb_canvas.set_chapter(chapter)
+        self.window.pdb_canvas.set_page(page)
 
     def save(self):
         super(ReadingState, self).save()
@@ -168,4 +183,3 @@ class ReadingState( State ):
 
     def __repr__(self):
         return "ReadingState"
-
