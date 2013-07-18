@@ -37,32 +37,23 @@ class PDBCanvas(PDBWidget):
         super(PDBCanvas, self).__init__(parent)
         self.old_rect = None
         self.datasource = None
-        self.chapter = 0
-        self.page = 0
         self.setFocusPolicy(Qt.StrongFocus)
 
     def set_pdb(self, pdb):
         super(PDBCanvas, self).set_pdb(pdb)
-        self.chapter = 0
-        self.page = 0
+        self.datasource = None
+        self.do_calc()
 
     def set_chapter(self, chapter):
         if not self.pdb:
             return
 
-        self.chapter = chapter
-
         if not self.datasource:
             self.do_calc()
 
-        page = self._search_chapter(chapter)
-        if not page:
-            page = 0
-        logging.debug("chapter %d is in page %d" % (self.chapter, page))
-        self.set_page(page)
+        self.datasource.set_current_page_by_chapter(chapter)
 
     def set_page(self, page):
-        self.page = page
         if self.datasource:
             self.datasource.current_page = page
             self.redraw_canvas()
@@ -74,25 +65,24 @@ class PDBCanvas(PDBWidget):
         cell_width = point_size + point_size
         cell_height = point_size + point_size / 2
 
-        self.x_pos_list = range(
-            rect.width()-cell_width*2, rect.top()+cell_width, -cell_width)
-        self.y_pos_list = range(
-            cell_height, rect.height()-cell_height, cell_height)
+        self.x_pos_list = list(range(
+            rect.width() - cell_width * 2,
+            rect.top() + cell_width, -cell_width))
+        self.y_pos_list = list(range(
+            cell_height, rect.height() - cell_height, cell_height))
         columns_in_page = len(self.x_pos_list)
         glyphs_in_column = len(self.y_pos_list)
+
+        if self.datasource:
+            old_chapter = self.datasource.get_current_chapter()
+        else:
+            old_chapter = 0
         self.source = convert_pdb_to_pages(
             self.pdb, columns_in_page, glyphs_in_column)
         self.datasource = PagedDataSource(self.source)
-        found_page = self._search_chapter(self.chapter)
-        if not found_page:
-            found_page = 0
-        logging.debug("found_page=%d", found_page)
-        self.datasource.current_page = found_page
-        if self.page:
-            logging.debug("self.page=%d", self.page)
-            self.datasource.current_page = self.page
+        self.datasource.set_current_page_by_chapter(old_chapter)
         self.old_rect = rect
-        self.chapter_seg = rect.width()/self.pdb.chapters
+        self.chapter_seg = rect.width() / self.pdb.chapters
 
     def paintEvent(self, event):
         if not self.pdb:
@@ -112,7 +102,7 @@ class PDBCanvas(PDBWidget):
         # draw chapter indicator
         if self.pdb.chapters > 1:
             x = rect.width() - (
-                self.datasource.get_current_page()[0]+1) * self.chapter_seg
+                self.datasource.get_current_page()[0] + 1) * self.chapter_seg
             self._draw_indicator(painter, x, 0, self.chapter_seg)
 
         # draw page in chapter indicator
@@ -137,33 +127,20 @@ class PDBCanvas(PDBWidget):
                 if pos >= len(column):
                     break
                 painter.drawText(x, y, column[pos])
-                pos = pos+1
-            col = col+1
+                pos = pos + 1
+            col = col + 1
 
         painter.restore()
 
     def _tell(self):
-        self.tell.emit(self.chapter, self.datasource.current_page)
+        self.tell.emit(self.datasource.get_current_chapter(),
+            self.datasource.current_page)
 
     def _count_chapter_pages(self, chapter):
         if not self.source:
             return -1
         pages = [ch for ch, n_in_p, p in self.source if ch == chapter]
         return len(pages)
-
-    def _search_chapter(self, chapter):
-        """
-        According the specified page number to search chapter.
-        Return the chapter number if found, else return None.
-        """
-        found = None
-        page_count = 0
-        for chap, n_in_page, page in self.source:
-            if chap == chapter:
-                found = page_count
-                break
-            page_count = page_count + 1
-        return found
 
     def keyPressEvent(self, event):
         flag = False
