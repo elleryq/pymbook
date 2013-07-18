@@ -89,6 +89,7 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
             page.append(column)
         pages.append((chapter_num, num_in_chapter, page))
         return pages
+
     pages = []
     for chapter_num in range(pdb.chapters):
         content = pdb.chapter(chapter_num)
@@ -97,4 +98,13 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
     return pages
 
 if __name__ == "__main__":
-    print(find_pdbs(""))
+    pdbs = find_pdbs("")
+    print(("Found these pdb files:"))
+    for title, path in pdbs:
+        print(("{0} {1}".format(title.encode('utf-8'), path)))
+
+    pdb = PDBFile(pdbs[0][1]).parse()
+    results = convert_pdb_to_pages(pdb, 25, 40)
+    for chapter, num_in_chapter, page in results:
+        print(("chapter={0} num_in_chapter={1}".format(
+            chapter, num_in_chapter)))
