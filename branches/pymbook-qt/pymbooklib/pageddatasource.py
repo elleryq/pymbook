@@ -39,5 +39,25 @@ class PagedDataSource(object):
     def get_current_page(self):
         return self.pages[self.current_page]
 
+    def get_current_chapter(self):
+        return self.get_current_page()[0] + 1
+
+    def set_current_page_by_chapter(self, chapter):
+        self.current_page = self._search_chapter(chapter - 1)
+
+    def _search_chapter(self, chapter):
+        """
+        According the specified page number to search chapter.
+        Return the chapter number if found, else return None.
+        """
+        found = 0
+        page_count = 0
+        for chap, n_in_page, page in self.pages:
+            if chap == chapter:
+                found = page_count
+                break
+            page_count = page_count + 1
+        return found
+
     def count_pages(self):
         return len(self.pages)
