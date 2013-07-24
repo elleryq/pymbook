@@ -19,16 +19,19 @@
 """pymbook"""
 import sys
 import os
+import logging
 
 from PySide.QtGui import QApplication
 from PySide.QtGui import QMainWindow
 from PySide.QtGui import QMessageBox
 from PySide.QtGui import QTabWidget
 from pymbooklib.pdb import PDBFile
+from pymbooklib.pdb import PDBException
 from pymbooklib.bookshelf import BookshelfWidget
 from pymbooklib.pdbcanvas import PDBCanvas
 from pymbooklib.pdbcontents import PDBContents
 
+from pymbooklib.state import ContentState
 from ui_mainwindow import Ui_MainWindow
 
 
@@ -80,13 +83,48 @@ class MainWindow(QMainWindow):
         tabControl.addTab(self.ui.canvas, "Reading")
 
         self.ui.bookshelf.book_selected.connect(self.bookshelfBookSelected)
-        #self.ui.contents.connect(
-        #    "chapter_selected", self.pdb_contents_chapter_selected_cb)
+        self.ui.contents.chapter_selected.connect(self.contentsChapterSelected)
         #self.ui.canvas.connect(
         #    "tell_callback", self.pdb_canvas_tell_callback)
 
-    def bookshelfBookSelected(self, book):
-        print(book)
+    def open_pdb(self, pdb_filename):
+        #import urlparse
+        try:
+            self.pdb = PDBFile(pdb_filename).parse()
+            self.ui.contents.set_pdb(self.pdb)
+            self.ui.contents.redraw_canvas()
+            self.ui.canvas.set_pdb(self.pdb)
+            self.ui.canvas.redraw_canvas()
+        except PDBException, ex:
+            logging.error("Cannot open specified pdb: %s", repr(ex))
+            QMessageBox.warning(self, "", "Cannot open specified pdb.")
+            return False
+        except BaseException, ex:
+            logging.error("Other exception: %s" % repr(ex))
+            return False
+        #self.window.set_title("%s - %s" % (APP_NAME, self.pdb.book_name))
+        #uri = urlparse.urljoin("file://", pdb_filename.encode('utf-8'))
+        #self.recent.add_full(uri, {'mime_type': 'application/octet-stream',
+        #                           'app_name': APP_NAME,
+        #                           'app_exec': 'pymbook',
+        #                           'group': 'pymbook',
+        #                           'display_name': self.pdb.book_name.encode(
+        #                               'utf-8')})
+        return True
+
+    def bookshelfBookSelected(self, book_item):
+        book_name, pdb_filename = book_item
+        logging.debug("(%s, %s) is selected" % (book_name, pdb_filename))
+        if self.open_pdb(pdb_filename):
+            self.pdb_filename = pdb_filename
+            self.ui.contents.set_pdb(self.pdb)
+            self.ui.contents.redraw_canvas()
+            #self.state = ContentState().enter()
+            self.ui.tab.setCurrentIndex(1)
+            #self.state.save()
+
+    def contentsChapterSelected(self, chapter):
+        print(chapter)
 
     def hello(self):
         QMessageBox.information(self, "Hello", "Hello")
