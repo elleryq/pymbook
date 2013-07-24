@@ -33,7 +33,7 @@ from pdbwidget import PDBWidget
 
 
 class BookshelfWidget(PDBWidget):
-    book_selected = Signal((str,))
+    book_selected = Signal((tuple,))
 
     def __init__(self, parent=None, shelf_path=""):
         super(BookshelfWidget, self).__init__(parent)
@@ -162,6 +162,10 @@ class BookshelfWidget(PDBWidget):
         self.do_calc()
 
     def which_book(self, x, y):
+        """Return the book tuple selected by user.
+
+        :returns: Tuple contains parsed PDBFile and book title.
+        """
         selected = 0
         for r in self.regions:
             if r.contains(QPoint(int(x), int(y))):
@@ -172,19 +176,20 @@ class BookshelfWidget(PDBWidget):
                 selected = selected + len(page)
         # print("selected={0}".format(selected))
         if selected < len(self.books):
-            return self.books[selected][1]
+            return self.books[selected]
         return None
-
-    def get_book(self, idx):
-        return self.books[idx]
 
 if __name__ == "__main__":
     import sys
     from PySide.QtGui import QApplication
     from PySide.QtGui import QMainWindow
 
-    def clicked(book):
-        print(book)
+    if len(sys.argv) < 2:
+        print("Need 1 argument, the argument should a path.")
+        sys.exit(-1)
+
+    def clicked(book_item):
+        print(book_item)
 
     class MainWindow(QMainWindow):
 
