@@ -24,8 +24,10 @@ from PySide.QtGui import QApplication
 from PySide.QtGui import QMainWindow
 from PySide.QtGui import QMessageBox
 from PySide.QtGui import QTabWidget
-from pymbooklib.pdbcanvas import PDBCanvas
 from pymbooklib.pdb import PDBFile
+from pymbooklib.bookshelf import BookshelfWidget
+from pymbooklib.pdbcanvas import PDBCanvas
+from pymbooklib.pdbcontents import PDBContents
 
 from ui_mainwindow import Ui_MainWindow
 
@@ -51,14 +53,40 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.ui.tab = TabWidget()
 
-        self.ui.pdbcanvas = PDBCanvas()
-        self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
-        self.ui.pdbcanvas.set_pdb(self.pdbfile)
-        self.ui.tab.addTab(self.ui.pdbcanvas, "")
+        #self.ui.pdbcanvas = PDBCanvas()
+        #self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
+        #self.ui.pdbcanvas.set_pdb(self.pdbfile)
+        #self.ui.tab.addTab(self.ui.pdbcanvas, "")
 
+        self.initTabs(self.ui.tab)
         self.ui.verticalLayout.addWidget(self.ui.tab)
 
         self.ui.actionE_xit.triggered.connect(self.close)
+
+    def initTabs(self, tabControl):
+        # Add bookshelf tab
+        #self.ui.bookshelf = BookshelfWidget(
+        #   self.config[config.ENTRY_SHELF_PATH])
+        self.ui.bookshelf = BookshelfWidget(None, ".")
+        #self.ui.bookshelf.set_font(font)
+        tabControl.addTab(self.ui.bookshelf, "Bookshelf")
+
+        # Add contents tab
+        self.ui.contents = PDBContents()
+        tabControl.addTab(self.ui.contents, "Contents")
+
+        # Add text tab
+        self.ui.canvas = PDBCanvas()
+        tabControl.addTab(self.ui.canvas, "Reading")
+
+        self.ui.bookshelf.book_selected.connect(self.bookshelfBookSelected)
+        #self.ui.contents.connect(
+        #    "chapter_selected", self.pdb_contents_chapter_selected_cb)
+        #self.ui.canvas.connect(
+        #    "tell_callback", self.pdb_canvas_tell_callback)
+
+    def bookshelfBookSelected(self, book):
+        print(book)
 
     def hello(self):
         QMessageBox.information(self, "Hello", "Hello")
