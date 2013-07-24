@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) 2010 elleryq@gmail.com
+#  Copyright (C) 2013 elleryq@gmail.com
 #
 #  This file is part of pymbook
 #  pymbook is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
-"""State"""
+"""State classes to change the state of the controls in window."""
 
 import config
 import logging
@@ -27,9 +27,7 @@ CONTEXT_TAB = 2
 
 
 class StateErrorException(BaseException):
-
-    """
-    The exception throwed by State and inherited classes.
+    """The exception throwed by State and inherited classes.
     """
 
     def __init__(self, state_name):
@@ -40,6 +38,8 @@ class StateErrorException(BaseException):
 
 
 class State(object):
+    """Base state object.
+    """
     config = None
     window = None
 
@@ -77,6 +77,8 @@ class State(object):
 
 
 class ShelfState(State):
+    """Bookshelf state.
+    """
 
     def enter(self):
         self.window.btn_shelf.set_sensitive(True)
@@ -99,6 +101,8 @@ class ShelfState(State):
 
 
 class ShelfCanBackState(ShelfState):
+    """Bookshelf state but user can go back in this state.
+    """
 
     def enter(self):
         self.window.btn_return.set_sensitive(True)
@@ -109,6 +113,8 @@ class ShelfCanBackState(ShelfState):
 
 
 class ContentState(State):
+    """Content state, user can select prefered chapter in this state.
+    """
 
     def enter(self):
         self.window.btn_shelf.set_sensitive(True)
@@ -136,6 +142,8 @@ class ContentState(State):
 
 
 class ContentCanBackState(ContentState):
+    """Similar to ContentState but user can go back in this state.
+    """
 
     def enter(self):
         self.window.btn_return.set_sensitive(True)
@@ -146,6 +154,8 @@ class ContentCanBackState(ContentState):
 
 
 class ReadingState(State):
+    """Reading state, user read the text of the chapter in this state.
+    """
 
     def enter(self):
         self.window.btn_shelf.set_sensitive(True)
@@ -159,8 +169,8 @@ class ReadingState(State):
         super(ReadingState, self).load()
         self.check_filename(repr(self))
 
-        if self.config[config.ENTRY_CURRENT_CHAPTER] == None or \
-                self.config[config.ENTRY_CURRENT_PAGE] == None:
+        if self.config[config.ENTRY_CURRENT_CHAPTER] is None or \
+                self.config[config.ENTRY_CURRENT_PAGE] is None:
             raise StateErrorException(repr(self))
 
         chapter = self.config[config.ENTRY_CURRENT_CHAPTER]
