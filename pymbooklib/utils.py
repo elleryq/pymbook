@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) 2010 elleryq@gmail.com
+#  Copyright (C) 2013 elleryq@gmail.com
 #
 #  This file is part of pymbook
 #  pymbook is free software: you can redistribute it and/or modify
@@ -41,6 +41,8 @@ def find_pdbs(path):
 
 
 def get_font_tuple(font_name):
+    """Get font information via pango.
+    """
     import pango
     fontdesc = pango.FontDescription(font_name)
     font_name = fontdesc.get_family()
@@ -49,6 +51,8 @@ def get_font_tuple(font_name):
 
 
 def convert_columns_to_pages(columns, columns_in_page):
+    """Convert column list to page list according to columns_in_page.
+    """
     pages = []
     page_len = len(columns) / columns_in_page + 1
     for i in range(page_len):
@@ -57,6 +61,9 @@ def convert_columns_to_pages(columns, columns_in_page):
 
 
 def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
+    """Convert text in pdb to pages according to columns_in_page and
+    glyphs_in_column.
+    """
     def convert_text_to_pages(chapter_num, text, columns_in_page,
                               glyphs_in_column):
         pages = []
