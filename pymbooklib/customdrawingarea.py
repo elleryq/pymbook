@@ -24,7 +24,7 @@ from utils import get_font_tuple
 
 class CustomDrawingArea(gtk.DrawingArea):
     """The base widget of BookshelfWidget, PDBContents and PDBCanvas."""
-    font_name = '¤å¬uÅæ·L¦Ì¶Â'
+    font_name = 'Droid Sans'
     font_size = 16
 
     def __init__( self ):
