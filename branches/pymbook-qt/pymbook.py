@@ -35,6 +35,44 @@ from pymbooklib.state import ContentState
 from ui_mainwindow import Ui_MainWindow
 
 
+class State(object):
+    """Base state"""
+    def __init__(self, window):
+        super(State, self).__init__()
+
+    def enter(self):
+        pass
+
+class BookshelfState(State):
+    """The state for selecting books."""
+    def __init__(self, window):
+        super(BookshelfState, self).__init__(window)
+
+
+class ContentState(State):
+    """The state for select chapters (show content)."""
+    pass
+
+
+class ReadingState(State):
+    """The state for reading."""
+    pass
+
+
+class StateMachine(object):
+    """State machine"""
+    def __init__(self, window):
+        super(StateMachine, self).__init__()
+        self.initializeStates(window)
+        self.currentState.enter()
+
+    def initializeStates(self, window):
+        self.bookshelfState = BookshelfState(window)
+        self.contentState = ContentState(window)
+        self.readingState = ReadingState(window)
+        self.currentState = self.bookshelfState
+
+
 class TabWidget(QTabWidget):
     def __init__(self, parent=None):
         super(TabWidget, self).__init__(parent)
@@ -65,6 +103,8 @@ class MainWindow(QMainWindow):
         self.ui.verticalLayout.addWidget(self.ui.tab)
 
         self.ui.actionE_xit.triggered.connect(self.close)
+
+        self.sm = StateMachine(self.ui)
 
     def initTabs(self, tabControl):
         # Add bookshelf tab
