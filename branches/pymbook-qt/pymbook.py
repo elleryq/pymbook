@@ -30,6 +30,7 @@ from pymbooklib.pdb import PDBException
 from pymbooklib.bookshelf import BookshelfWidget
 from pymbooklib.pdbcanvas import PDBCanvas
 from pymbooklib.pdbcontents import PDBContents
+from pymbooklib.config import Config
 
 from pymbooklib.state import ContentState
 from ui_mainwindow import Ui_MainWindow
@@ -42,6 +43,7 @@ class State(object):
 
     def enter(self):
         pass
+
 
 class BookshelfState(State):
     """The state for selecting books."""
@@ -61,16 +63,44 @@ class ReadingState(State):
 
 class StateMachine(object):
     """State machine"""
-    def __init__(self, window):
+    def __init__(self, window, config):
         super(StateMachine, self).__init__()
         self.initializeStates(window)
+        self.restoreState(config)
         self.currentState.enter()
 
     def initializeStates(self, window):
         self.bookshelfState = BookshelfState(window)
         self.contentState = ContentState(window)
         self.readingState = ReadingState(window)
-        self.currentState = self.bookshelfState
+
+    def getCurrentStateFromName(self, state_name):
+        #states = {
+        #    config.STATE_BOOKSHELF: ShelfState(),
+        #    config.STATE_CONTENT: ContentState(),
+        #    config.STATE_READING: ReadingState()
+        #}
+        #if not state_name in states:
+        #     return None
+        #return states[state_name]
+        pass
+
+    def restoreState(self, config):
+        if config.hasCurrentState():
+            self.currentState = self.getCurrentStateFromName(
+                config.getCurrentState())
+        else:
+            self.currentState = self.bookshelfState
+
+        try:
+            #self.currentState.load()
+            pass
+        except BaseException, e:
+            logging.warn(e)
+            logging.info("Fallback to ShelfState")
+            #self.state = ShelfState()
+            #self.state.load()
+        self.currentState.enter()
 
 
 class TabWidget(QTabWidget):
@@ -87,17 +117,14 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.ui.tab = TabWidget()
 
-        #self.ui.pdbcanvas = PDBCanvas()
-        #self.pdbfile = PDBFile(os.path.realpath("D55d.pdb")).parse()
-        #self.ui.pdbcanvas.set_pdb(self.pdbfile)
-        #self.ui.tab.addTab(self.ui.pdbcanvas, "")
-
         self.initTabs(self.ui.tab)
         self.ui.verticalLayout.addWidget(self.ui.tab)
 
         self.ui.actionE_xit.triggered.connect(self.close)
 
-        self.sm = StateMachine(self.ui)
+        self.config = Config()
+        self.config.load()
+        self.sm = StateMachine(self.ui, self.config)
 
     def initTabs(self, tabControl):
         # Add bookshelf tab
