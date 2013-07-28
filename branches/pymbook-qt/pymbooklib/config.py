@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright (C) 2010 elleryq@gmail.com
+#  Copyright (C) 2013 elleryq@gmail.com
 #
 #  This file is part of pymbook
 #  pymbook is free software: you can redistribute it and/or modify
@@ -49,16 +49,17 @@ DEFAULT_CONFIG_CONTENT = """
 %s = %s
 %s = %d
 %s = %s
-""" % ( ENTRY_SHELF_PATH, DEFAULT_SHELF_PATH, 
-        ENTRY_WIDTH, DEFAULT_WIDTH, 
-        ENTRY_HEIGHT, DEFAULT_HEIGHT,
-        ENTRY_FONT_NAME, DEFAULT_FONT_NAME,
-        ENTRY_FONT_SIZE, DEFAULT_FONT_SIZE,
-        ENTRY_STATE, DEFAULT_STATE)
+""" % (ENTRY_SHELF_PATH, DEFAULT_SHELF_PATH,
+       ENTRY_WIDTH, DEFAULT_WIDTH,
+       ENTRY_HEIGHT, DEFAULT_HEIGHT,
+       ENTRY_FONT_NAME, DEFAULT_FONT_NAME,
+       ENTRY_FONT_SIZE, DEFAULT_FONT_SIZE,
+       ENTRY_STATE, DEFAULT_STATE)
 
 SECTION = 'mbook'
 
 CONFIG_FILENAME = "~/.config/pymbook.conf"
+
 
 class Config(object):
     def __init__(self, filename=CONFIG_FILENAME):
@@ -69,23 +70,34 @@ class Config(object):
         import ConfigParser
         import io
         self.config = ConfigParser.RawConfigParser()
-        if os.path.exists( os.path.expanduser( self.filename ) ):
-            self.config.readfp( open( os.path.expanduser( self.filename ) ) )
+        if os.path.exists(os.path.expanduser(self.filename)):
+            self.config.readfp(open(os.path.expanduser(self.filename)))
         else:
-            self.config.readfp( io.BytesIO(DEFAULT_CONFIG_CONTENT) )
+            self.config.readfp(io.BytesIO(DEFAULT_CONFIG_CONTENT))
 
     def save(self):
-        import ConfigParser
-        self.config.write( open(os.path.expanduser( CONFIG_FILENAME ), "wt" ) )
+        self.config.write(open(os.path.expanduser(CONFIG_FILENAME), "wt"))
 
     def __getitem__(self, key):
-        if not self.config.has_option( SECTION, key ):
+        if not self.config.has_option(SECTION, key):
             return None
-        if key in ( ENTRY_WIDTH, ENTRY_HEIGHT, ENTRY_FONT_SIZE,
-                ENTRY_CURRENT_CHAPTER, ENTRY_CURRENT_PAGE ):
-            return self.config.getint( SECTION, key )
+        if key in (ENTRY_WIDTH, ENTRY_HEIGHT, ENTRY_FONT_SIZE,
+                   ENTRY_CURRENT_CHAPTER, ENTRY_CURRENT_PAGE):
+            return self.config.getint(SECTION, key)
         else:
-            return self.config.get( SECTION, key )
+            return self.config.get(SECTION, key)
 
     def __setitem__(self, key, data):
-        self.config.set( SECTION, key, data )
+        self.config.set(SECTION, key, data)
+
+    def hasCurrentState(self):
+        """Check whether current state entry is existed."""
+        if ENTRY_STATE in self:
+            return True
+        return False
+
+    def getCurrentState(self):
+        """Get ENTRY_STATE entry."""
+        if not ENTRY_STATE in self:
+            raise Exception("No such entry.")
+        return self[ENTRY_STATE]
