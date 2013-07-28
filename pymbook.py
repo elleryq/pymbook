@@ -124,7 +124,16 @@ class MainWindow(QMainWindow):
             #self.state.save()
 
     def contentsChapterSelected(self, chapter):
-        print(chapter)
+        if chapter == -1:
+            QMessageBox.warning(self, "", "No such chapter.")
+            return
+        logging.debug("chapter={0}".format(chapter))
+        self.ui.canvas.redraw_canvas()
+        self.ui.canvas.set_chapter(chapter)
+        self.ui.tab.setCurrentIndex(2)
+        #self.state = ReadingState().enter()
+        #self.state.save()
+
 
     def hello(self):
         QMessageBox.information(self, "Hello", "Hello")
