@@ -91,7 +91,6 @@ class Config(object):
         self.config.set(SECTION, key, data)
 
     def __contains__(self, item):
-        print("contains", item)
         if not self.config.has_option(SECTION, item):
             return False
         return True
@@ -106,5 +105,4 @@ class Config(object):
         """Get ENTRY_STATE entry."""
         if not ENTRY_STATE in self:
             raise Exception("No such entry.")
-        print(self.__getitem__(ENTRY_STATE))
         return self.__getitem__(ENTRY_STATE)
