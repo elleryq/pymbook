@@ -32,7 +32,6 @@ from pymbooklib.pdbcanvas import PDBCanvas
 from pymbooklib.pdbcontents import PDBContents
 from pymbooklib.config import Config
 
-from pymbooklib.state import ContentState
 from ui_mainwindow import Ui_MainWindow
 
 
