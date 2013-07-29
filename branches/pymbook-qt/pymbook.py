@@ -193,7 +193,6 @@ class MainWindow(QMainWindow):
         #self.state = ReadingState().enter()
         #self.state.save()
 
-
     def hello(self):
         QMessageBox.information(self, "Hello", "Hello")
 
