@@ -70,20 +70,20 @@ class StateMachine(object):
         self.currentState.enter()
 
     def initializeStates(self, window):
+        from pymbooklib import config
         self.bookshelfState = BookshelfState(window)
         self.contentState = ContentState(window)
         self.readingState = ReadingState(window)
+        self.states = {
+            config.STATE_BOOKSHELF: self.bookshelfState,
+            config.STATE_CONTENT: self.contentState,
+            config.STATE_READING: self.readingState
+        }
 
     def getCurrentStateFromName(self, state_name):
-        #states = {
-        #    config.STATE_BOOKSHELF: ShelfState(),
-        #    config.STATE_CONTENT: ContentState(),
-        #    config.STATE_READING: ReadingState()
-        #}
-        #if not state_name in states:
-        #     return None
-        #return states[state_name]
-        pass
+        if not state_name in self.states:
+            return None
+        return self.states[state_name]
 
     def restoreState(self, config):
         if config.hasCurrentState():
