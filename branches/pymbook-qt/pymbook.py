@@ -38,10 +38,14 @@ from ui_mainwindow import Ui_MainWindow
 class State(object):
     """Base state"""
     def __init__(self, window):
+        self.window = window
         super(State, self).__init__()
 
     def enter(self):
-        pass
+        self.bindEvents()
+
+    def bindEvents(self):
+        self.window.ui.actionE_xit.triggered.connect(self.window.close)
 
 
 class BookshelfState(State):
@@ -119,11 +123,9 @@ class MainWindow(QMainWindow):
         self.initTabs(self.ui.tab)
         self.ui.verticalLayout.addWidget(self.ui.tab)
 
-        self.ui.actionE_xit.triggered.connect(self.close)
-
         self.config = Config()
         self.config.load()
-        self.sm = StateMachine(self.ui, self.config)
+        self.sm = StateMachine(self, self.config)
 
     def initTabs(self, tabControl):
         # Add bookshelf tab
