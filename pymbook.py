@@ -47,11 +47,66 @@ class State(object):
     def bindEvents(self):
         self.window.ui.actionE_xit.triggered.connect(self.window.close)
 
+    def open_pdb(self, pdb_filename):
+        #import urlparse
+        try:
+            self.window.pdb = PDBFile(pdb_filename).parse()
+            self.window.ui.contents.set_pdb(self.window.pdb)
+            self.window.ui.contents.redraw_canvas()
+            self.window.ui.canvas.set_pdb(self.window.pdb)
+            self.window.ui.canvas.redraw_canvas()
+        except PDBException, ex:
+            logging.error("Cannot open specified pdb: %s", repr(ex))
+            QMessageBox.warning(self, "", "Cannot open specified pdb.")
+            return False
+        except BaseException, ex:
+            logging.error("Other exception: %s" % repr(ex))
+            return False
+        #self.window.set_title("%s - %s" % (APP_NAME, self.pdb.book_name))
+        #uri = urlparse.urljoin("file://", pdb_filename.encode('utf-8'))
+        #self.recent.add_full(uri, {'mime_type': 'application/octet-stream',
+        #                           'app_name': APP_NAME,
+        #                           'app_exec': 'pymbook',
+        #                           'group': 'pymbook',
+        #                           'display_name': self.pdb.book_name.encode(
+        #                               'utf-8')})
+        return True
+
 
 class BookshelfState(State):
     """The state for selecting books."""
     def __init__(self, window):
         super(BookshelfState, self).__init__(window)
+
+    def bindEvents(self):
+        self.window.ui.bookshelf.book_selected.connect(
+            self.bookshelfBookSelected)
+        self.window.ui.contents.chapter_selected.connect(
+            self.contentsChapterSelected)
+        #self.ui.canvas.connect(
+        #    "tell_callback", self.pdb_canvas_tell_callback)
+
+    def bookshelfBookSelected(self, book_item):
+        book_name, pdb_filename = book_item
+        logging.debug("(%s, %s) is selected" % (book_name, pdb_filename))
+        if self.open_pdb(pdb_filename):
+            self.window.pdb_filename = pdb_filename
+            self.window.ui.contents.set_pdb(self.window.pdb)
+            self.window.ui.contents.redraw_canvas()
+            #self.state = ContentState().enter()
+            self.window.ui.tab.setCurrentIndex(1)
+            #self.state.save()
+
+    def contentsChapterSelected(self, chapter):
+        if chapter == -1:
+            QMessageBox.warning(self, "", "No such chapter.")
+            return
+        logging.debug("chapter={0}".format(chapter))
+        self.window.ui.canvas.redraw_canvas()
+        self.window.ui.canvas.set_chapter(chapter)
+        self.window.ui.tab.setCurrentIndex(2)
+        #self.state = ReadingState().enter()
+        #self.state.save()
 
 
 class ContentState(State):
@@ -142,58 +197,6 @@ class MainWindow(QMainWindow):
         # Add text tab
         self.ui.canvas = PDBCanvas()
         tabControl.addTab(self.ui.canvas, "Reading")
-
-        self.ui.bookshelf.book_selected.connect(self.bookshelfBookSelected)
-        self.ui.contents.chapter_selected.connect(self.contentsChapterSelected)
-        #self.ui.canvas.connect(
-        #    "tell_callback", self.pdb_canvas_tell_callback)
-
-    def open_pdb(self, pdb_filename):
-        #import urlparse
-        try:
-            self.pdb = PDBFile(pdb_filename).parse()
-            self.ui.contents.set_pdb(self.pdb)
-            self.ui.contents.redraw_canvas()
-            self.ui.canvas.set_pdb(self.pdb)
-            self.ui.canvas.redraw_canvas()
-        except PDBException, ex:
-            logging.error("Cannot open specified pdb: %s", repr(ex))
-            QMessageBox.warning(self, "", "Cannot open specified pdb.")
-            return False
-        except BaseException, ex:
-            logging.error("Other exception: %s" % repr(ex))
-            return False
-        #self.window.set_title("%s - %s" % (APP_NAME, self.pdb.book_name))
-        #uri = urlparse.urljoin("file://", pdb_filename.encode('utf-8'))
-        #self.recent.add_full(uri, {'mime_type': 'application/octet-stream',
-        #                           'app_name': APP_NAME,
-        #                           'app_exec': 'pymbook',
-        #                           'group': 'pymbook',
-        #                           'display_name': self.pdb.book_name.encode(
-        #                               'utf-8')})
-        return True
-
-    def bookshelfBookSelected(self, book_item):
-        book_name, pdb_filename = book_item
-        logging.debug("(%s, %s) is selected" % (book_name, pdb_filename))
-        if self.open_pdb(pdb_filename):
-            self.pdb_filename = pdb_filename
-            self.ui.contents.set_pdb(self.pdb)
-            self.ui.contents.redraw_canvas()
-            #self.state = ContentState().enter()
-            self.ui.tab.setCurrentIndex(1)
-            #self.state.save()
-
-    def contentsChapterSelected(self, chapter):
-        if chapter == -1:
-            QMessageBox.warning(self, "", "No such chapter.")
-            return
-        logging.debug("chapter={0}".format(chapter))
-        self.ui.canvas.redraw_canvas()
-        self.ui.canvas.set_chapter(chapter)
-        self.ui.tab.setCurrentIndex(2)
-        #self.state = ReadingState().enter()
-        #self.state.save()
 
     def hello(self):
         QMessageBox.information(self, "Hello", "Hello")
