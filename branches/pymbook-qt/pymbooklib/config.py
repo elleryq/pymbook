@@ -90,6 +90,12 @@ class Config(object):
     def __setitem__(self, key, data):
         self.config.set(SECTION, key, data)
 
+    def __contains__(self, item):
+        print("contains", item)
+        if not self.config.has_option(SECTION, item):
+            return False
+        return True
+
     def hasCurrentState(self):
         """Check whether current state entry is existed."""
         if ENTRY_STATE in self:
@@ -100,4 +106,5 @@ class Config(object):
         """Get ENTRY_STATE entry."""
         if not ENTRY_STATE in self:
             raise Exception("No such entry.")
-        return self[ENTRY_STATE]
+        print(self.__getitem__(ENTRY_STATE))
+        return self.__getitem__(ENTRY_STATE)
