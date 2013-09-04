@@ -1,0 +1,31 @@
+
+導入 QStateMachine
+
+主要狀態
+
+Running -> Quit
+
+然後 Running 裏面再細分為數個狀態
+書櫃 -> 章節 -> 閱讀
+
+然而，閱讀狀態如何回到章節狀態?
+應該說，QState 允許兩個方向嗎？
+
+依照 addTransition( button.clicked, chapterState )
+因為繫結的事件不一樣，看起來是可以
+
+但這樣又引發另外一個問題，就是，如果都是依照控制項的 signal 來決定如何 Transition
+那控制項在不同 State 有不同處理時，該當如何?
+
+好，那要整理一下
+
+先看原來的介面。
+
+State
+=====
+ * Running: 3 child states: bookshelf, chapter, reading.
+ * Finish
+
+Bookshelf State
+===============
+
