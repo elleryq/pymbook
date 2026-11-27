@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,20 +18,10 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 """Translation"""
 
-from version import APP_NAME
+import gettext
 
-_ = None
+from .version import APP_NAME
 
-try:
-    import gettext
-    gettext.textdomain(APP_NAME)
-    _ = gettext.gettext
-except Exception, e:
-    print e
-    def dummytrans (text):
-        """A _ function for systems without gettext. Effectively a NOOP"""
-        return(text)
-
-    _ = dummytrans
-    print( "use dummytrans" )
+gettext.textdomain(APP_NAME)
+_ = gettext.gettext
 

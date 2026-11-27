@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,45 +18,50 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """Bookshelf widget"""
-import gobject
-import gtk
 import logging
 
-from utils import find_pdbs
-from utils import convert_columns_to_pages
-from customdrawingarea import CustomDrawingArea
-from pageddatasource import PagedDataSource
+from gi.repository import Gdk, GObject
+
+from .utils import find_pdbs
+from .utils import convert_columns_to_pages
+from .customdrawingarea import CustomDrawingArea
+from .pageddatasource import PagedDataSource
 
 class BookshelfWidget(CustomDrawingArea):
-    __gsignals__ = dict(book_selected=(gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,
-                                      (gobject.TYPE_INT,)))
+    __gsignals__ = dict(book_selected=(GObject.SignalFlags.RUN_FIRST,
+                                      GObject.TYPE_NONE,
+                                      (GObject.TYPE_INT,)))
 
     def __init__( self, shelf_path ):
         super(BookshelfWidget, self).__init__()
         self.books = find_pdbs( shelf_path )
 
-        self.connect("expose_event", self.expose)
-        self.connect("scroll-event", self.scroll_event )
-        self.connect("button_release_event", self.button_release)
+        self.connect("draw", self.expose)
+        self.connect("scroll-event", self.scroll_event)
+        self.connect("button-release-event", self.button_release)
         self.connect("motion-notify-event", self.motion_notify)
         self.connect("key-press-event", self.key_press)
-        self.connect("configure-event", self.configure )
+        self.connect("size-allocate", self.configure)
 
     def get_cell_size(self):
-        return (self.font_size*2, self.font_size+self.font_size/3)
+        return (self.font_size * 2, self.font_size + self.font_size // 3)
 
     def do_calc(self):
         rect = self.get_allocation()
         cell_width, cell_height = self.get_cell_size()
-        self.x_pos_list = range(rect.width-cell_width*2, 
-                rect.x+cell_width, -cell_width)
-        self.y_pos_list = range(0, rect.height, (rect.height-1) )
+        self.x_pos_list = range(
+            rect.width - cell_width * 2, rect.x + cell_width, -cell_width)
+        self.y_pos_list = range(0, rect.height, max(1, rect.height - 1))
+        if not self.x_pos_list:
+            self.x_pos_list = [max(0, rect.width - cell_width)]
+        if not self.y_pos_list:
+            self.y_pos_list = [0]
         self.regions = [ 
-            gtk.gdk.region_rectangle( (x, self.y_pos_list[0], 
-                        cell_width, self.y_pos_list[-1]-self.y_pos_list[0]
-                    ) ) for x in self.x_pos_list[1:]]
-        columns_in_page = len( self.x_pos_list )-1
+            (x, self.y_pos_list[0], cell_width,
+             max(1, self.y_pos_list[-1] - self.y_pos_list[0]))
+            for x in self.x_pos_list[1:]
+        ]
+        columns_in_page = max(1, len(self.x_pos_list) - 1)
         self.datasource = PagedDataSource( convert_columns_to_pages(
                     self.books, columns_in_page ) )
     
@@ -69,17 +74,15 @@ class BookshelfWidget(CustomDrawingArea):
             if y > limit:
                 break
 
-    def configure(self, widget, event):
+    def configure(self, widget, allocation):
         if not self.books:
-            return False
+            return
 
         self.do_calc()
 
-    def expose(self, widget, event):
+    def expose(self, widget, cx):
         if not self.books:
             return False
-
-        cx=widget.window.cairo_create()
 
         # get canvas size
         rect=self.get_allocation()
@@ -104,8 +107,8 @@ class BookshelfWidget(CustomDrawingArea):
         # Show shelf
         cx.save()
         if self.font_name and self.font_size:
-            cx.select_font_face( self.font_name )
-            cx.set_font_size( self.font_size)
+            cx.select_font_face(self.font_name)
+            cx.set_font_size(self.font_size)
         start_x = 1
         start_y = 0
         columns_in_page=len( self.x_pos_list )
@@ -119,7 +122,7 @@ class BookshelfWidget(CustomDrawingArea):
                 start_x = start_x + 1
                 if start_x>columns_in_page:
                     start_x = 1
-        except IndexError, e:
+        except IndexError as e:
             logging.error( e )
             logging.debug( 
                 "start_x=%d len(x_pos_list)=%d columns_in_page=%d len(datasource.get_current_page())" % (
@@ -134,9 +137,9 @@ class BookshelfWidget(CustomDrawingArea):
         if not self.books:
             return False
 
-        if event.direction==gtk.gdk.SCROLL_UP:
+        if event.direction == Gdk.ScrollDirection.UP:
             self.datasource.go_previous()
-        elif event.direction==gtk.gdk.SCROLL_DOWN:
+        elif event.direction == Gdk.ScrollDirection.DOWN:
             self.datasource.go_next()
         self.redraw_later()
         return True
@@ -158,14 +161,15 @@ class BookshelfWidget(CustomDrawingArea):
         if not self.books:
             return False
         flag = True
-        if event.keyval==gtk.gdk.keyval_from_name("Page_Up"):
+        if event.keyval == Gdk.keyval_from_name("Page_Up"):
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Page_Down") or \
-            event.keyval==gtk.gdk.keyval_from_name("Space"):
+        elif event.keyval in (
+                Gdk.keyval_from_name("Page_Down"),
+                Gdk.keyval_from_name("Space")):
             self.datasource.go_next()
-        elif event.keyval==gtk.gdk.keyval_from_name("Up"):
+        elif event.keyval == Gdk.keyval_from_name("Up"):
             self.datasource.go_previous()
-        elif event.keyval==gtk.gdk.keyval_from_name("Down"):
+        elif event.keyval == Gdk.keyval_from_name("Down"):
             self.datasource.go_next()
         else:
             flag = False
@@ -174,8 +178,9 @@ class BookshelfWidget(CustomDrawingArea):
 
     def which_book(self, x, y):
         selected=0
-        for r in self.regions:
-            if r.point_in( int(x), int(y) ):
+        for region_x, region_y, width, height in self.regions:
+            if (region_x <= int(x) < region_x + width and
+                    region_y <= int(y) < region_y + height):
                 break
             selected=selected+1
         if self.datasource.current_page>0:
