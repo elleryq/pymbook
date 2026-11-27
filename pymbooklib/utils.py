@@ -71,13 +71,16 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
         glyphs = 0
         page = []
         num_in_chapter=0
-        for c in text:
+        page_start_offset = 0
+        for text_offset, c in enumerate(text):
             if column_count>=columns_in_page:
-                pages.append( (chapter_num, num_in_chapter, page) )
+                pages.append((
+                    chapter_num, num_in_chapter, page, page_start_offset))
                 num_in_chapter=num_in_chapter+1
                 page=[]
                 column_count=0
                 glyphs=0
+                page_start_offset = text_offset
             if c=='\u000d':
                 continue
             elif c=='\u000a' or glyphs>=glyphs_in_column:
@@ -93,7 +96,8 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
             glyphs = glyphs + 1
         if len(column)>0:
             page.append( column )
-        pages.append( (chapter_num, num_in_chapter, page) )
+        pages.append((
+            chapter_num, num_in_chapter, page, page_start_offset))
         return pages
     pages = []
     for chapter_num in range(pdb.chapters):
@@ -103,6 +107,21 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
                     chapter_num, content,
                     columns_in_page, glyphs_in_column))
     return pages
+
+
+def find_page_for_offset(pages, chapter, text_offset):
+    chapter_pages = [
+        (index, page_offset)
+        for index, (page_chapter, _, _, page_offset) in enumerate(pages)
+        if page_chapter == chapter
+    ]
+    eligible_pages = [
+        index for index, page_offset in chapter_pages
+        if page_offset <= text_offset
+    ]
+    if eligible_pages:
+        return eligible_pages[-1]
+    return chapter_pages[0][0] if chapter_pages else None
 
 if __name__ == "__main__":
     print(find_pdbs(""))

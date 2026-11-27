@@ -24,7 +24,7 @@ from gi.repository import Gdk, GObject
 
 from .pdbwidget import PDBWidget
 from .pageddatasource import PagedDataSource
-from .utils import convert_pdb_to_pages
+from .utils import convert_pdb_to_pages, find_page_for_offset
 
 class PDBCanvas(PDBWidget):
     __gsignals__ = dict(tell_callback=(GObject.SignalFlags.RUN_FIRST,
@@ -35,6 +35,7 @@ class PDBCanvas(PDBWidget):
         super(PDBCanvas, self).__init__()
         self.old_rect = None
         self.datasource = None
+        self.source = []
         self.pdb = None
         self.chapter = 0
         self.page = 0
@@ -45,8 +46,11 @@ class PDBCanvas(PDBWidget):
         self.connect("size-allocate", self.configure)
 
     def set_pdb(self, pdb):
-        super(PDBCanvas, self).set_pdb( pdb )
-        self.chapter=0
+        self.datasource = None
+        self.source = []
+        self.chapter = 0
+        self.page = 0
+        super(PDBCanvas, self).set_pdb(pdb)
 
     def set_chapter(self, chapter):
         self.chapter=chapter
@@ -72,10 +76,19 @@ class PDBCanvas(PDBWidget):
             self.redraw_canvas()
 
     def do_calc(self):
+        current_position = None
+        if self.datasource and self.source:
+            current_page = self.datasource.current_page
+            if 0 <= current_page < len(self.source):
+                page = self.source[current_page]
+                current_position = page[0], page[3]
+
         # get canvas size
         rect=self.get_allocation()
         cell_width = self.font_size + self.font_size // 4
         cell_height = self.font_size + self.font_size // 3
+        if rect.width <= cell_width * 2 or rect.height <= cell_height:
+            return
 
         self.x_pos_list = range(
             rect.width - cell_width * 2, rect.x + cell_width, -cell_width)
@@ -86,14 +99,21 @@ class PDBCanvas(PDBWidget):
         self.source = convert_pdb_to_pages(
             self.pdb, columns_in_page, glyphs_in_column)
         self.datasource = PagedDataSource(self.source)
-        found_page = self._search_chapter( self.chapter )
-        if not found_page:
-            found_page = 0
-        logging.debug( "found_page=%d", found_page )
-        self.datasource.current_page = found_page
-        if self.page:
-            logging.debug( "self.page=%d", self.page)
-            self.datasource.current_page=self.page
+        target_page = None
+        if current_position:
+            chapter, text_offset = current_position
+            target_page = find_page_for_offset(
+                self.source, chapter, text_offset)
+            self.chapter = chapter
+
+        if target_page is None:
+            target_page = self._search_chapter(self.chapter)
+            if self.page:
+                target_page = min(self.page, len(self.source) - 1)
+        if target_page is None:
+            target_page = 0
+        self.datasource.current_page = target_page
+        self.page = target_page
         self.old_rect=rect
         self.chapter_seg = rect.width // self.pdb.chapters
 
@@ -147,12 +167,14 @@ class PDBCanvas(PDBWidget):
         return False
 
     def _tell(self):
-        self.emit("tell_callback", self.chapter, self.datasource.current_page)
+        chapter = self.source[self.datasource.current_page][0]
+        self.chapter = chapter
+        self.emit("tell_callback", chapter, self.datasource.current_page)
 
     def _count_chapter_pages(self, chapter):
         if not self.source:
             return -1
-        pages=[ ch for ch, n_in_p, p in self.source if ch==chapter ]
+        pages = [page for page in self.source if page[0] == chapter]
         return len(pages)
 
     def _search_chapter(self, chapter):
@@ -162,7 +184,7 @@ class PDBCanvas(PDBWidget):
         """
         found = None
         page_count = 0
-        for chap, n_in_page, page in self.source:
+        for chap, _, _, _ in self.source:
             if chap == chapter:
                 found = page_count
                 break
@@ -177,6 +199,7 @@ class PDBCanvas(PDBWidget):
             self.datasource.go_previous()
         elif event.direction == Gdk.ScrollDirection.DOWN:
             self.datasource.go_next()
+        self.page = self.datasource.current_page
         self.redraw_later()
         return True
 
@@ -204,6 +227,7 @@ class PDBCanvas(PDBWidget):
             self.datasource.go_next()
         else:
             flag = False
+        self.page = self.datasource.current_page
         self.redraw_later()
         return flag
 

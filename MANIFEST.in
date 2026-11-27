@@ -1,0 +1,5 @@
+include data/pymbook.desktop.in
+include po/*.in
+include po/*.po
+include po/*.pot
+include po/*.sh

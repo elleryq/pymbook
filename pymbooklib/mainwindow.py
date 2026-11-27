@@ -374,7 +374,7 @@ class MainWindow:
             return
         pages = convert_pdb_to_pages(self.pdb, 24, 35)
         with open(text_filename, "w", encoding="utf-8") as text_file:
-            for chapter_num, num_in_chapter, page in pages:
+            for chapter_num, num_in_chapter, page, _ in pages:
                 for col in page:
                     text_file.write("".join(col))
                     text_file.write("\n")

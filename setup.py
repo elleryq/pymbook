@@ -6,9 +6,9 @@ import os
 from pathlib import Path
 import subprocess
 
+from distutils.command.install_data import install_data
 from setuptools import setup
-from setuptools._distutils.command.build import build
-from setuptools.command.install_data import install_data
+from setuptools.command.build import build
 
 
 class BuildData(build):
