@@ -52,8 +52,8 @@ python3 -m pip install .
 python3 -m unittest discover -v
 ```
 
-GitHub Actions 會在 pull request 和 `master` 更新時執行測試，並分別建置
-Debian `.deb` 與 RPM `.rpm`。套件可從該次 workflow run 的 artifacts 下載。
+GitHub Actions 會在 pull request、`master` 更新或推送 `v*` 版本標籤時執行測試，
+並分別建置 Debian `.deb` 與 RPM `.rpm`。套件可從該次 workflow run 的 artifacts 下載。
 在 Debian/Ubuntu 環境中，也可於安裝 `debian/control` 列出的建置相依套件後執行：
 
 ```sh
