@@ -1,0 +1,89 @@
+name: CI and packages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GTK test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            gir1.2-gtk-3.0 python3-cairo python3-gi python3-gi-cairo \
+            xauth xvfb
+
+      - name: Run unit tests
+        run: xvfb-run -a /usr/bin/python3 -m unittest discover -v
+
+  debian:
+    name: Build Debian package
+    runs-on: ubuntu-24.04
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Debian build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential debhelper dh-python gettext intltool \
+            python3-all python3-setuptools
+
+      - name: Build .deb
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-package
+          path: ../pymbook_*.deb
+          if-no-files-found: error
+
+  rpm:
+    name: Build RPM package
+    runs-on: ubuntu-24.04
+    needs: tests
+    container: fedora:44
+    steps:
+      - name: Install RPM build dependencies
+        run: |
+          dnf install -y \
+            desktop-file-utils gettext git intltool python3-devel \
+            python3-gobject python3-cairo python3-setuptools rpm-build
+
+      - uses: actions/checkout@v4
+
+      - name: Prepare RPM source archive
+        shell: bash
+        run: |
+          topdir="$HOME/rpmbuild"
+          mkdir -p "$topdir"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          git archive --format=tar --prefix=pymbook-0.4/ "$GITHUB_SHA" \
+            | gzip -n > "$topdir/SOURCES/pymbook-0.4.tar.gz"
+
+      - name: Build RPM
+        shell: bash
+        run: |
+          topdir="$HOME/rpmbuild"
+          rpmbuild -ba --define "_topdir $topdir" pymbook.spec
+          mkdir -p artifacts
+          cp "$topdir"/RPMS/noarch/*.rpm "$topdir"/SRPMS/*.rpm artifacts/
+
+      - name: Upload RPM packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-package
+          path: artifacts/*.rpm
+          if-no-files-found: error

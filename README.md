@@ -44,6 +44,22 @@ python3 -m pip install .
 
 系統套件管理器也可用來安裝 GTK 3、PyGObject、Pycairo 及建置工具等原生相依套件。
 
+## 開發與套件建置
+
+執行測試：
+
+```sh
+python3 -m unittest discover -v
+```
+
+GitHub Actions 會在 pull request 和 `master` 更新時執行測試，並分別建置
+Debian `.deb` 與 RPM `.rpm`。套件可從該次 workflow run 的 artifacts 下載。
+在 Debian/Ubuntu 環境中，也可於安裝 `debian/control` 列出的建置相依套件後執行：
+
+```sh
+dpkg-buildpackage -us -uc -b
+```
+
 ## 閱讀操作
 
 - **書架**：顯示書架目錄中的 `.pdb` 和 `.updb` 檔案；點選書名開啟。
