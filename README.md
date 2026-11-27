@@ -11,13 +11,14 @@ pymbook 是一個以 GTK 桌面環境執行的電子書閱讀器，主要用來�
 
 ## 執行需求
 
-這是以 Python 2 和 GTK 2/PyGTK 2 撰寫的舊版應用程式，尚未支援 Python 3。執行前需安裝：
+執行前需安裝：
 
-- Python 2.5 或更新版本（原專案建議 Python 2.6）
-- GTK 2 與 PyGTK 2
-- GTK 繪圖所需的 Pango、Cairo 元件
+- Python 3.8 或更新版本
+- GTK 3 與 PyGObject（GTK introspection bindings）
+- Pycairo
 
-若要建置翻譯及桌面項目，另需 `msgfmt`（gettext）和 `intltool-merge`。
+若從原始碼建置翻譯及桌面項目，另需 `msgfmt`（gettext）和
+`intltool-merge`。
 
 ## 安裝與啟動
 
@@ -33,16 +34,15 @@ pymbook 是一個以 GTK 桌面環境執行的電子書閱讀器，主要用來�
 ./pymbook /path/to/book.pdb
 ```
 
-也可使用 `python2 ./pymbook /path/to/book.updb` 開啟 uPDB。未指定檔案時，可透過「開啟」對話框選擇書籍，或從書架載入書籍。
+也可使用 `python3 ./pymbook /path/to/book.updb` 開啟 uPDB。未指定檔案時，可透過「開啟」對話框選擇書籍，或從書架載入書籍。
 
 以原始碼安裝（需具備相依套件與建置工具）：
 
 ```sh
-python2 setup.py build
-python2 setup.py install --record=install-files.txt
+python3 -m pip install .
 ```
 
-`INSTALL` 檔案提供其他安裝選項。安裝至系統目錄時，請依作業系統套件管理方式處理所需權限。
+系統套件管理器也可用來安裝 GTK 3、PyGObject、Pycairo 及建置工具等原生相依套件。
 
 ## 閱讀操作
 

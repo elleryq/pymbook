@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,37 +18,40 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """Custom DrawingArea"""
-import gobject
-import gtk
-from utils import get_font_tuple
+import gi
 
-class CustomDrawingArea(gtk.DrawingArea):
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gdk, GLib, Gtk
+
+from .utils import get_font_tuple
+
+
+class CustomDrawingArea(Gtk.DrawingArea):
     """The base widget of BookshelfWidget, PDBContents and PDBCanvas."""
-    font_name = '¤å¬uÅæ·L¦Ì¶Â'
+    font_name = 'æ–‡æ³‰é©›å¾®ç±³é»‘'
     font_size = 16
 
     def __init__( self ):
         super(CustomDrawingArea, self).__init__()
         self.timer = None
 
-        self.set_flags( gtk.CAN_FOCUS | gtk.SENSITIVE )
+        self.set_can_focus(True)
+        self.set_sensitive(True)
 
         # Handle these events.
-        self.add_events( gtk.gdk.BUTTON_PRESS_MASK | 
-                        gtk.gdk.BUTTON_RELEASE_MASK | 
-                        gtk.gdk.POINTER_MOTION_MASK |
-                        gtk.gdk.KEY_PRESS_MASK |
-                        gtk.gdk.SCROLL_MASK )
+        self.add_events(
+            Gdk.EventMask.BUTTON_PRESS_MASK |
+            Gdk.EventMask.BUTTON_RELEASE_MASK |
+            Gdk.EventMask.POINTER_MOTION_MASK |
+            Gdk.EventMask.KEY_PRESS_MASK |
+            Gdk.EventMask.SCROLL_MASK
+        )
 
     def set_font(self, font):
         self.font_name, self.font_size = get_font_tuple( font )
 
     def redraw_canvas(self):
-        if self.window:
-            alloc=self.get_allocation()
-            rect=gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-            self.window.invalidate_rect(rect, True)
-            self.window.process_updates(True)
+        self.queue_draw()
 
     def _draw_indicator(self, cx, x, y, seg):
         """
@@ -75,8 +78,12 @@ class CustomDrawingArea(gtk.DrawingArea):
         cx.restore()
 
     def redraw_later(self):
-        import glib
         if self.timer:
-            glib.source_remove( self.timer )
-        self.timer = glib.timeout_add( 200, self.redraw_canvas )
+            GLib.source_remove(self.timer)
+        self.timer = GLib.timeout_add(200, self._redraw_later)
+
+    def _redraw_later(self):
+        self.timer = None
+        self.queue_draw()
+        return GLib.SOURCE_REMOVE
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -17,27 +17,26 @@
 #  You should have received a copy of the GNU General Public License
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 """MainWindow"""
-import sys
 import os
-
-import pygtk
-pygtk.require('2.0')
-import gtk
 import logging
 
-import pdb
-import version
-from pdb import PDBException
-from version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
-from pdbcontents import PDBContents
-from pdbcanvas import PDBCanvas
-from bookshelf import BookshelfWidget
-import config
-from state import ShelfState, ShelfCanBackState
-from state import ContentState, ContentCanBackState
-from state import State, ReadingState
-from translation import _
-from utils import get_font_tuple, convert_pdb_to_pages
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gio, Gtk
+
+from . import pdb
+from . import config, version
+from .pdb import PDBException
+from .version import APP_NAME, APP_VERSION, APP_COMMENT, APP_AUTHORS
+from .pdbcontents import PDBContents
+from .pdbcanvas import PDBCanvas
+from .bookshelf import BookshelfWidget
+from .state import (
+    ShelfState, ShelfCanBackState, ContentState, ContentCanBackState,
+    State, ReadingState,
+)
+from .translation import _
+from .utils import get_font_tuple, convert_pdb_to_pages
 
 
 class MainWindow:
@@ -71,10 +70,14 @@ class MainWindow:
             glade_file = os.path.join(
                 os.path.dirname(version.__file__), 'main_window.glade')
             builder.add_from_file(glade_file)
-        except BaseException, e:
+        except Exception as e:
             logging.error(e)
-            err_dialog = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, repr(e))
+            err_dialog = Gtk.MessageDialog(
+                parent=None,
+                flags=Gtk.DialogFlags.MODAL,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=repr(e))
             result = err_dialog.run()
             err_dialog.destroy()
             self.leave()
@@ -82,10 +85,10 @@ class MainWindow:
         return result
 
     def initialize_recent_files(self, builder):
-        self.recent = gtk.RecentManager()
-        menu_recent = gtk.RecentChooserMenu(self.recent)
+        self.recent = Gtk.RecentManager()
+        menu_recent = Gtk.RecentChooserMenu.new_for_manager(self.recent)
         menu_recent.set_limit(10)
-        self.file_filter = gtk.RecentFilter()
+        self.file_filter = Gtk.RecentFilter()
         self.file_filter.add_pattern("*.pdb")
         self.file_filter.add_pattern("*.updb")
         menu_recent.set_filter(self.file_filter)
@@ -118,21 +121,21 @@ class MainWindow:
 
         try:
             self.state.load()
-        except BaseException, e:
-            logging.warn(e)
+        except Exception as e:
+            logging.warning(e)
             logging.info("Fallback to ShelfState")
             self.state = ShelfState()
             self.state.load()
         self.state.enter()
 
     def initialize_component(self):
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         if not self.load_ui(builder):
             return
 
         self.window = builder.get_object("window1")
         self.window.set_title(APP_NAME)
-        self.window.set_position(gtk.WIN_POS_CENTER)
+        self.window.set_position(Gtk.WindowPosition.CENTER)
         # set minimal size
         self.window.set_size_request(
             config.DEFAULT_WIDTH, config.DEFAULT_HEIGHT)
@@ -156,29 +159,29 @@ class MainWindow:
         # Add bookshelf tab
         self.bookshelf = BookshelfWidget(self.config[config.ENTRY_SHELF_PATH])
         self.bookshelf.set_font(font)
-        frame = gtk.Frame()
+        frame = Gtk.Frame()
         frame.show()
         frame.add(self.bookshelf)
-        label = gtk.Label(_("Bookshelf"))
+        label = Gtk.Label(_("Bookshelf"))
         self.notebook.append_page(frame, label)
         self.bookshelf.show()
 
         # Add contents tab
         self.pdb_contents = PDBContents()
         self.pdb_contents.set_font(font)
-        frame = gtk.Frame()
+        frame = Gtk.Frame()
         frame.show()
         frame.add(self.pdb_contents)
-        label = gtk.Label(_("Contents"))
+        label = Gtk.Label(_("Contents"))
         self.notebook.append_page(frame, label)
         self.pdb_contents.show()
 
         # Add text tab
         self.pdb_canvas = PDBCanvas()
-        frame = gtk.Frame()
+        frame = Gtk.Frame()
         self.pdb_canvas.set_font(font)
         frame.add(self.pdb_canvas)
-        label = gtk.Label(_("Text"))
+        label = Gtk.Label(_("Text"))
         self.notebook.append_page(frame, label)
 
         self.pdb_canvas.show()
@@ -198,32 +201,34 @@ class MainWindow:
         self.window.show()
 
     def open_pdb(self, pdb_filename):
-        import urlparse
         try:
             self.pdb = pdb.PDBFile(pdb_filename).parse()
             self.pdb_contents.set_pdb(self.pdb)
             self.pdb_contents.redraw_canvas()
             self.pdb_canvas.set_pdb(self.pdb)
             self.pdb_canvas.redraw_canvas()
-        except PDBException, ex:
+        except PDBException as ex:
             logging.error("Cannot open specified pdb: %s", repr(ex))
-            dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL,
-                                       gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                                       _("Cannot open specified pdb."))
+            dialog = Gtk.MessageDialog(
+                parent=self.window,
+                flags=Gtk.DialogFlags.MODAL,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=_("Cannot open specified pdb."))
             result = dialog.run()
             dialog.destroy()
             return False
-        except BaseException, ex:
-            logging.error("Other exception: %s" % repr(ex))
+        except Exception as ex:
+            logging.exception("Cannot open specified pdb: %s", ex)
             return False
         self.window.set_title("%s - %s" % (APP_NAME, self.pdb.book_name))
-        uri = urlparse.urljoin("file://", pdb_filename.encode('utf-8'))
-        self.recent.add_full(uri, {'mime_type': 'application/octet-stream',
-                                   'app_name': APP_NAME,
-                                   'app_exec': 'pymbook',
-                                   'group': 'pymbook',
-                                   'display_name': self.pdb.book_name.encode(
-                                       'utf-8')})
+        uri = Gio.File.new_for_path(pdb_filename).get_uri()
+        recent_data = Gtk.RecentData()
+        recent_data.mime_type = "application/octet-stream"
+        recent_data.app_name = APP_NAME
+        recent_data.app_exec = "pymbook %u"
+        recent_data.display_name = self.pdb.book_name
+        self.recent.add_full(uri, recent_data)
         return True
 
     def leave(self):
@@ -232,23 +237,27 @@ class MainWindow:
         self.config[config.ENTRY_HEIGHT] = rect.height
         self.config[config.ENTRY_CURRENT_PDB] = self.pdb_filename
         self.config.save()
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def window1_delete_event_cb(self, widget, event, data=None):
         self.state.save()
         self.act_quit.activate()
 
     def select_recent_cb(self, menu):
-        filename = menu.get_current_item().get_uri_display()
+        uri = menu.get_current_item().get_uri()
+        filename = Gio.File.new_for_uri(uri).get_path()
+        if not filename:
+            logging.error("Cannot read local path from recent URI: %s", uri)
+            return
         if self.open_pdb(filename):
             self.pdb_filename = filename
-            self.state = ContentState(self).enter()
+            self.state = ContentState().enter()
 
     def act_quit_activate_cb(self, b):
         self.leave()
 
     def act_about_activate_cb(self, b):
-        dialog=gtk.AboutDialog()
+        dialog=Gtk.AboutDialog()
         dialog.set_name( APP_NAME )
         dialog.set_version( APP_VERSION )
         dialog.set_authors( APP_AUTHORS )
@@ -258,36 +267,39 @@ class MainWindow:
         dialog.destroy()
 
     def act_open_activate_cb(self, b):
-        dialog = gtk.FileChooserDialog(_("Open..."),
-                                       None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                        gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        dialog.set_default_response(gtk.RESPONSE_OK)
+        dialog = Gtk.FileChooserDialog(
+            title=_("Open..."),
+            parent=None,
+            action=Gtk.FileChooserAction.OPEN,
+            buttons=(
+                Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        dialog.set_default_response(Gtk.ResponseType.OK)
 
-        _filter = gtk.FileFilter()
+        _filter = Gtk.FileFilter()
         _filter.set_name(_("PDB/uPDB files"))
         _filter.add_pattern("*.pdb")
         _filter.add_pattern("*.updb")
         dialog.add_filter(_filter)
 
         response = dialog.run()
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.ResponseType.OK:
             self.pdb_filename = dialog.get_filename()
             if self.open_pdb(self.pdb_filename):
-                self.state = ContentState(self).enter()
+                self.state = ContentState().enter()
                 self.state.save()
-        elif response == gtk.RESPONSE_CANCEL:
+        elif response == Gtk.ResponseType.CANCEL:
             pass
         dialog.destroy()
 
     def act_font_activate_cb(self, b):
-        dialog = gtk.FontSelectionDialog(_("Choose font"))
-        dialog.set_default_response(gtk.RESPONSE_OK)
-        dialog.set_font_name("%s %d" % (self.config[config.ENTRY_FONT_NAME],
-                                        self.config[config.ENTRY_FONT_SIZE]))
+        dialog = Gtk.FontChooserDialog(_("Choose font"), None)
+        dialog.set_default_response(Gtk.ResponseType.OK)
+        dialog.set_font("%s %d" % (self.config[config.ENTRY_FONT_NAME],
+                                   self.config[config.ENTRY_FONT_SIZE]))
         response = dialog.run()
-        if response == gtk.RESPONSE_OK:
-            font_name = dialog.get_font_name()
+        if response == Gtk.ResponseType.OK:
+            font_name = dialog.get_font()
             self.bookshelf.set_font(font_name)
             self.pdb_contents.set_font(font_name)
             self.pdb_canvas.set_font(font_name)
@@ -305,24 +317,23 @@ class MainWindow:
 
     def act_preference_activate_cb(self, b):
         try:
-            builder = gtk.Builder()
+            builder = Gtk.Builder()
             builder.set_translation_domain(APP_NAME)
             glade_file = os.path.join(os.path.dirname(version.__file__),
                                       'preference_dialog.glade')
             pref_dlg = builder.add_from_file(glade_file)
-        except BaseException, e:
+        except Exception as e:
             logging.error(e)
             return
         pref_dlg = builder.get_object("dialog1")
         chooser_btn = builder.get_object("filechooserbutton1")
         shelf_path = os.path.expanduser(
-            self.config[config.ENTRY_SHELF_PATH]).encode(
-                sys.getfilesystemencoding())
+            self.config[config.ENTRY_SHELF_PATH])
         chooser_btn.set_current_folder(shelf_path)
 
         result = pref_dlg.run()
         # OK
-        if result == gtk.RESPONSE_OK:
+        if result == Gtk.ResponseType.OK:
             selected_path = chooser_btn.get_filename()
             if selected_path:
                 self.config[config.ENTRY_SHELF_PATH] = selected_path
@@ -339,43 +350,52 @@ class MainWindow:
         self.state = ReadingState().enter()
 
     def act_export2text_activate_cb(self, b):
-        dialog = gtk.FileChooserDialog(_("Save..."), None,
-                                       gtk.FILE_CHOOSER_ACTION_SAVE,
-                                       (gtk.STOCK_CANCEL,
-                                        gtk.RESPONSE_CANCEL,
-                                        gtk.STOCK_SAVE_AS, gtk.RESPONSE_OK))
-        dialog.set_default_response(gtk.RESPONSE_OK)
+        dialog = Gtk.FileChooserDialog(
+            title=_("Save..."),
+            parent=None,
+            action=Gtk.FileChooserAction.SAVE,
+            buttons=(
+                Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE_AS, Gtk.ResponseType.OK))
+        dialog.set_default_response(Gtk.ResponseType.OK)
 
-        _filter = gtk.FileFilter()
+        _filter = Gtk.FileFilter()
         _filter.set_name(_("Text files"))
         _filter.add_pattern("*.txt")
         dialog.add_filter(_filter)
 
         response = dialog.run()
+        text_filename = (
+            dialog.get_filename()
+            if response == Gtk.ResponseType.OK else None
+        )
         dialog.destroy()
-        if response == gtk.RESPONSE_OK:
-            text_filename = dialog.get_filename()
-        elif response == gtk.RESPONSE_CANCEL:
+        if not text_filename:
             return
         pages = convert_pdb_to_pages(self.pdb, 24, 35)
-        f = open(text_filename, "wt")
-        for chapter_num, num_in_chapter, page in pages:
-            for col in page:
-                f.write(u''.join(col).encode('utf-8'))
-                f.write('\n')
-        f.close()
-        dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL,
-                                   gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE,
-                                   _("Converting is finished.  The file is at '%s'") % text_filename)
+        with open(text_filename, "w", encoding="utf-8") as text_file:
+            for chapter_num, num_in_chapter, page in pages:
+                for col in page:
+                    text_file.write("".join(col))
+                    text_file.write("\n")
+        dialog = Gtk.MessageDialog(
+            parent=self.window,
+            flags=Gtk.DialogFlags.MODAL,
+            message_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.CLOSE,
+            text=_("Converting is finished.  The file is at '%s'") %
+            text_filename)
         result = dialog.run()
         dialog.destroy()
 
     def pdb_contents_chapter_selected_cb(self, widget, chapter):
         if chapter == -1:
-            dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL,
-                                       gtk.MESSAGE_ERROR,
-                                       gtk.BUTTONS_CLOSE,
-                                       _("No such chapter."))
+            dialog = Gtk.MessageDialog(
+                parent=self.window,
+                flags=Gtk.DialogFlags.MODAL,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=_("No such chapter."))
             result = dialog.run()
             dialog.destroy()
             return
@@ -387,10 +407,12 @@ class MainWindow:
 
     def bookshelf_book_selected_cb(self, widget, book):
         if book == -1:
-            dialog = gtk.MessageDialog(self.window, gtk.DIALOG_MODAL,
-                                       gtk.MESSAGE_ERROR,
-                                       gtk.BUTTONS_CLOSE,
-                                       _("No such book."))
+            dialog = Gtk.MessageDialog(
+                parent=self.window,
+                flags=Gtk.DialogFlags.MODAL,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=_("No such book."))
             result = dialog.run()
             dialog.destroy()
             return

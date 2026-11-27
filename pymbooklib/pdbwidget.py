@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,8 +18,8 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """PDBWidget"""
-import gtk
-from customdrawingarea import CustomDrawingArea
+from .customdrawingarea import CustomDrawingArea
+
 
 class PDBWidget(CustomDrawingArea):
     def __init__(self):

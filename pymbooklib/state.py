@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,14 +18,14 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 """State"""
 
-import config
+from . import config
 import logging
 
 SHELF_TAB = 0
 CONTENT_TAB = 1
 CONTEXT_TAB = 2
 
-class StateErrorException(BaseException):
+class StateErrorException(Exception):
     """
     The exception throwed by State and inherited classes.
     """

@@ -1,40 +1,20 @@
-It's strongly recommended to install pymbook using your OS's package
-system rather than using setup.py yourself.  You can find instructions
-for many distributions at:
+Install pymbook with your operating system's package manager when a
+package is available. To run from a source checkout, install:
 
-  http://code.google.com/p/pymbook/
+* Python 3.8 or newer
+* GTK 3, PyGObject, and Pycairo
 
-If you don't have this option, please make sure you satisfy pymbook's
-dependencies yourself:
+On Debian or Ubuntu, the runtime packages are `python3`, `python3-gi`,
+`gir1.2-gtk-3.0`, `python3-cairo`, and `python3-gi-cairo`.
 
- * Python 2.5+, 2.6 recommended:
-     Debian/Ubuntu: python
-     FreeBSD: lang/python26
+Run the reader from the repository root:
 
-If you don't care about native language support or icons, Terminator
-should run just fine directly from this directory, just:
+    ./pymbook [path/to/book.pdb]
 
-    ./pymbook
+To install from source, install the runtime dependencies and Python
+build tools, then run:
 
-And go from there.
+    python3 -m pip install .
 
-To install properly, run:
-
-    ./setup.py install --record=install-files.txt
-
-See --help for an overview of the available options; e.g. --prefix to
-install to a custom base directory, and --without-gettext to avoid
-installing natural language support files.
-
-setup.py supports basic uninstallation provided --record was used for
-installation as above:
-
-    ./setup.py uninstall --manifest=install-files.txt
-
-Note that uninstall will avoid removing most empty directories so it
-won't harm e.g. locale or icon directories which only contain Terminator
-data.  It also won't rebuild the icon cache, so you may wish to:
-
-     gtk-update-icon-cache -q -f ${PREFIX}/share/icons/hicolor
-
-Where ${PREFIX} is the base install directory; e.g. /usr/local.
+Building translations and the desktop entry also requires `msgfmt`
+(gettext) and `intltool-merge`.

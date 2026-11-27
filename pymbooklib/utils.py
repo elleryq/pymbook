@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,43 +18,48 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """Utilities"""
-from pdb import PDBFile
+import glob
+import logging
+import os
+
+from .pdb import PDBFile
 
 
 def find_pdbs(path):
     """Find all pdb/updb files according the specified path(absolute path).
     And return the filename lists which contain full path.
     """
-    import glob
-    import os
-    pdbfiles = glob.glob(os.path.join(path, "*.pdb"))+glob.glob(
-            os.path.join(path, "*.updb"))
+    pdbfiles = glob.glob(os.path.join(path, "*.pdb")) + glob.glob(
+        os.path.join(path, "*.updb"))
     books = []
     for pdb_filename in pdbfiles:
         try:
             books.append((
                 PDBFile(pdb_filename).parse().book_name,
                 pdb_filename))
-        except Exception, e:
-            print pdb_filename, ':',  e
+        except Exception as e:
+            logging.warning("Skipping unreadable book %s: %s",
+                            pdb_filename, e)
     return sorted(books)
 
 
 def get_font_tuple(font_name):
-    import pango
-    fontdesc = pango.FontDescription(font_name)
-    font_name = fontdesc.get_family()
-    font_size = fontdesc.get_size()/pango.SCALE
-    return (font_name, font_size)
+    from gi.repository import Pango
+
+    font_description = Pango.FontDescription(font_name)
+    return (font_description.get_family(),
+            int(font_description.get_size() / Pango.SCALE))
 
 
 def convert_columns_to_pages(columns, columns_in_page):
-    pages = []
-    page_len = len(columns)/columns_in_page+1
-    for i in range(page_len):
-        pages.append(
-                columns[columns_in_page*i:columns_in_page*(i+1)])
-    return pages
+    if columns_in_page < 1:
+        raise ValueError("columns_in_page must be positive")
+    if not columns:
+        return [[]]
+    return [
+        columns[index:index + columns_in_page]
+        for index in range(0, len(columns), columns_in_page)
+    ]
 
 
 def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
@@ -73,17 +78,17 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
                 page=[]
                 column_count=0
                 glyphs=0
-            if c==u'\u000d':
+            if c=='\u000d':
                 continue
-            elif c==u'\u000a' or glyphs>=glyphs_in_column:
+            elif c=='\u000a' or glyphs>=glyphs_in_column:
                 column_count = column_count + 1
                 page.append( column )
                 column = []
                 glyphs=0
-                if c==u'\u000a':
+                if c=='\u000a':
                     continue
-            if c==u'\u3000': # replace
-                c = u' '
+            if c=='\u3000': # replace
+                c = ' '
             column.append( c )
             glyphs = glyphs + 1
         if len(column)>0:
@@ -100,4 +105,4 @@ def convert_pdb_to_pages(pdb, columns_in_page, glyphs_in_column):
     return pages
 
 if __name__ == "__main__":
-    print find_pdbs("")
+    print(find_pdbs(""))

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -19,6 +19,8 @@
 """Config"""
 
 import os
+import configparser
+import io
 
 ENTRY_SHELF_PATH = "bookshelf_path"
 ENTRY_WIDTH = "width"
@@ -66,17 +68,21 @@ class Config(object):
         self.config = None
 
     def load(self):
-        import ConfigParser
-        import io
-        self.config = ConfigParser.RawConfigParser()
-        if os.path.exists( os.path.expanduser( self.filename ) ):
-            self.config.readfp( open( os.path.expanduser( self.filename ) ) )
+        self.config = configparser.RawConfigParser()
+        filename = os.path.expanduser(self.filename)
+        if os.path.exists(filename):
+            with open(filename, encoding="utf-8") as config_file:
+                self.config.read_file(config_file)
         else:
-            self.config.readfp( io.BytesIO(DEFAULT_CONFIG_CONTENT) )
+            self.config.read_file(io.StringIO(DEFAULT_CONFIG_CONTENT))
 
     def save(self):
-        import ConfigParser
-        self.config.write( open(os.path.expanduser( CONFIG_FILENAME ), "wt" ) )
+        filename = os.path.expanduser(self.filename)
+        directory = os.path.dirname(filename)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        with open(filename, "w", encoding="utf-8") as config_file:
+            self.config.write(config_file)
 
     def __getitem__(self, key):
         if not self.config.has_option( SECTION, key ):
@@ -88,4 +94,4 @@ class Config(object):
             return self.config.get( SECTION, key )
 
     def __setitem__(self, key, data):
-        self.config.set( SECTION, key, data )
+        self.config.set(SECTION, key, str(data))

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  Copyright (C) 2010 elleryq@gmail.com
@@ -18,18 +18,18 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """PDBCanvas"""
-import gobject
-import gtk
 import logging
 
-from pdbwidget import PDBWidget
-from pageddatasource import PagedDataSource
-from utils import convert_pdb_to_pages
+from gi.repository import Gdk, GObject
+
+from .pdbwidget import PDBWidget
+from .pageddatasource import PagedDataSource
+from .utils import convert_pdb_to_pages
 
 class PDBCanvas(PDBWidget):
-    __gsignals__ = dict(tell_callback=(gobject.SIGNAL_RUN_FIRST,
-                                      gobject.TYPE_NONE,
-                                      (gobject.TYPE_INT, gobject.TYPE_INT)))
+    __gsignals__ = dict(tell_callback=(GObject.SignalFlags.RUN_FIRST,
+                                      GObject.TYPE_NONE,
+                                      (GObject.TYPE_INT, GObject.TYPE_INT)))
 
     def __init__(self):
         super(PDBCanvas, self).__init__()
@@ -39,10 +39,10 @@ class PDBCanvas(PDBWidget):
         self.chapter = 0
         self.page = 0
 
-        self.connect("expose_event", self.expose)
-        self.connect("scroll-event", self.scroll_event )
-        self.connect("key-press-event", self.key_press )
-        self.connect("configure-event", self.configure )
+        self.connect("draw", self.expose)
+        self.connect("scroll-event", self.scroll_event)
+        self.connect("key-press-event", self.key_press)
+        self.connect("size-allocate", self.configure)
 
     def set_pdb(self, pdb):
         super(PDBCanvas, self).set_pdb( pdb )
@@ -74,16 +74,18 @@ class PDBCanvas(PDBWidget):
     def do_calc(self):
         # get canvas size
         rect=self.get_allocation()
-        cell_width=self.font_size+self.font_size/4
-        cell_height=self.font_size+self.font_size/3
+        cell_width = self.font_size + self.font_size // 4
+        cell_height = self.font_size + self.font_size // 3
 
-        self.x_pos_list=range(rect.width-cell_width*2, rect.x+cell_width, -cell_width)
-        self.y_pos_list=range(cell_height, rect.height-cell_height, cell_height)
-        columns_in_page=len( self.x_pos_list )
-        glyphs_in_column=len(self.y_pos_list)
-        self.source = convert_pdb_to_pages( self.pdb,
-                columns_in_page, glyphs_in_column ) 
-        self.datasource = PagedDataSource( self.source )
+        self.x_pos_list = range(
+            rect.width - cell_width * 2, rect.x + cell_width, -cell_width)
+        self.y_pos_list = range(
+            cell_height, rect.height - cell_height, cell_height)
+        columns_in_page = max(1, len(self.x_pos_list))
+        glyphs_in_column = max(1, len(self.y_pos_list))
+        self.source = convert_pdb_to_pages(
+            self.pdb, columns_in_page, glyphs_in_column)
+        self.datasource = PagedDataSource(self.source)
         found_page = self._search_chapter( self.chapter )
         if not found_page:
             found_page = 0
@@ -93,21 +95,17 @@ class PDBCanvas(PDBWidget):
             logging.debug( "self.page=%d", self.page)
             self.datasource.current_page=self.page
         self.old_rect=rect
-        self.chapter_seg = rect.width/self.pdb.chapters
+        self.chapter_seg = rect.width // self.pdb.chapters
 
     def configure(self, widget, event):
+        if self.pdb:
+            self.do_calc()
+
+    def expose(self, widget, cx):
         if not self.pdb:
             return False
 
-        self.do_calc()
-
-    def expose(self, widget, event):
-        if not self.pdb:
-            return False
-
-        cx=widget.window.cairo_create()
-
-        rect=self.get_allocation()
+        rect = self.get_allocation()
 
         # TODO: Is here a better place?
         self._tell()
@@ -127,8 +125,8 @@ class PDBCanvas(PDBWidget):
         # draw text
         cx.save()
         cx.set_source_rgb( 0, 0, 0 )
-        cx.select_font_face( self.font_name )
-        cx.set_font_size( self.font_size)
+        cx.select_font_face(self.font_name)
+        cx.set_font_size(self.font_size)
         page = self.datasource.get_current_page()[2]
         col = 0
         for x in self.x_pos_list:
@@ -140,7 +138,7 @@ class PDBCanvas(PDBWidget):
                 if pos>=len(column):
                     break
                 cx.move_to( x, y )
-                cx.show_text( column[pos] )
+                cx.show_text(column[pos])
                 pos = pos+1
             col = col+1
         
@@ -175,9 +173,9 @@ class PDBCanvas(PDBWidget):
         if not self.pdb:
             return False
 
-        if event.direction==gtk.gdk.SCROLL_UP:
+        if event.direction == Gdk.ScrollDirection.UP:
             self.datasource.go_previous()
-        elif event.direction==gtk.gdk.SCROLL_DOWN:
+        elif event.direction == Gdk.ScrollDirection.DOWN:
             self.datasource.go_next()
         self.redraw_later()
         return True
@@ -187,15 +185,19 @@ class PDBCanvas(PDBWidget):
         if not self.pdb:
             return flag
         flag = True
-        prev_list = [ gtk.gdk.keyval_from_name("Page_Up"),
-                gtk.gdk.keyval_from_name("Up"),
-                gtk.gdk.keyval_from_name("k"),
-                gtk.gdk.keyval_from_name("K") ]
-        next_list = [ gtk.gdk.keyval_from_name("Page_Down"),
-                gtk.gdk.keyval_from_name("Space"),
-                gtk.gdk.keyval_from_name("Down"),
-                gtk.gdk.keyval_from_name("j"),
-                gtk.gdk.keyval_from_name("J") ]
+        prev_list = [
+            Gdk.keyval_from_name("Page_Up"),
+            Gdk.keyval_from_name("Up"),
+            Gdk.keyval_from_name("k"),
+            Gdk.keyval_from_name("K"),
+        ]
+        next_list = [
+            Gdk.keyval_from_name("Page_Down"),
+            Gdk.keyval_from_name("Space"),
+            Gdk.keyval_from_name("Down"),
+            Gdk.keyval_from_name("j"),
+            Gdk.keyval_from_name("J"),
+        ]
         if event.keyval in prev_list:
             self.datasource.go_previous()
         elif event.keyval in next_list:

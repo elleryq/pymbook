@@ -1,25 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-#  Copyright (C) 2010 elleryq@gmail.com
-#
-#  This file is part of pymbook
-#  pymbook is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  pymbook is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
-"""PDBFile"""
-import sys
+"""Reader for Haodoo PDB and uPDB files."""
+
 import os
-import locale
+import sys
 
 PDB_HEADER_SIZE = 78
 PDB_HEADER_RECORD = 76
@@ -27,226 +11,192 @@ PDB_HEADER_BOOK_TYPE = 64
 PDB_HEADER_BOOK_TYPE_LEN = 4
 PDB_CHAPTER_OFFSET = 78
 
-class PDBException(BaseException):
-    """
-    The exception throwed by PDBFile.
-    """
-    def __init__(self, value ):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
 
-class BaseOperation(object):
-    """
-    Use template pattern to extract base operation.  The real implementation is in UnicodeOperation and DblByteOperation.
-    """
-    def __init__( self ):
-        self.empty_str = None
-        self.escape_char = None
+class PDBException(Exception):
+    """Raised when a PDB/uPDB file cannot be parsed."""
 
-    def parseBasicInformation( self, pdb, raw_text ):
-        raw_text = raw_text[8:]
-        basic_inf=raw_text.split( self.escape_char )
-        pdb.book_name = self.convert2unicode(
-                self.empty_str.join(self.processString(basic_inf[0])) )
-        pdb.chapters = self.extractChapters(basic_inf[3])
-        pdb.contents = self.extractContents( basic_inf[4:] )
-    
-    def processString(self, file):
-        pass
 
-    def convert2unicode( self, str ):
-        pass
+class BaseOperation:
+    """Format-specific conversion helpers used by :class:`PDBFile`."""
 
-    def extractChapters( self, str ):
-        return int( self.empty_str.join(str), 10 )
+    escape_char = b""
 
-    def extractContents( self, raw_list ):
-        pass
+    def parse_basic_information(self, pdb, raw_text):
+        fields = raw_text[8:].split(self.escape_char)
+        if len(fields) < 5:
+            raise PDBException("PDB metadata record is incomplete")
 
-    def skipBytesCount( self ):
-        return 0
+        pdb.book_name = self.convert_to_unicode(self.process_string(fields[0]))
+        pdb.chapters = int(self.convert_to_unicode(
+            self.process_string(fields[3])))
+        pdb.contents = self.extract_contents(fields[4:])
+        if pdb.chapters < 1:
+            raise PDBException("PDB contains no chapters")
+
+    def process_string(self, raw_text):
+        raise NotImplementedError
+
+    def convert_to_unicode(self, raw_text):
+        raise NotImplementedError
+
+    def extract_contents(self, raw_list):
+        raise NotImplementedError
+
 
 class UnicodeOperation(BaseOperation):
-    """
-    Handle updb(unicode pdb) file.
-    """
-    
-    def __init__( self ):
-        super(UnicodeOperation, self).__init__()
-        self.empty_str = u""
-        self.escape_char = "\x1b\x00"
-    
-    def processString(self, raw_str):
-        converted_text = []
-        count = len(raw_str)/2
-        for i in range(count):
-            ch = [ ord(c) for c in raw_str[i*2:i*2+2] ]
-            if not ch or len(ch)<2 or (ch[0]==0 and ch[1]==0):
+    """Decode uPDB text stored as little-endian UTF-16."""
+
+    escape_char = b"\x1b\x00"
+
+    def process_string(self, raw_text):
+        units = []
+        for index in range(0, len(raw_text) - 1, 2):
+            unit = raw_text[index:index + 2]
+            if unit == b"\x00\x00":
                 break
-            converted_text.append( unichr( (ch[1]<<8) + ch[0] ))
-        return converted_text
+            units.append(unit)
+        return b"".join(units).decode("utf-16le")
 
-    def convert2unicode( self, str ):
-        return str
+    def convert_to_unicode(self, text):
+        return text
 
-    def extractContents( self, raw_list ):
-        # workaround: len(raw_list) is 1, but we expect more.
-        # So we split it ourself.
-        contents = self.processString( raw_list[0] )
-        return self.empty_str.join(contents).split( u"\r\n" )
-
-class DblByteOperation( BaseOperation ):
-    """
-    Handle double byte pdb file.  For now, the pdb files provided by haodoo are encoded with cp950.
-    """
-    
-    def __init__( self ):
-        super(DblByteOperation, self).__init__()
-        self.empty_str = ""
-        self.escape_char = "\x1b"
-    
-    def processString(self, raw_str):
-        converted_text = []
-        for ch in raw_str:
-            if ord(ch)==0:
-                break
-            converted_text.append( ch )
-        return converted_text
-
-    def convert2unicode( self, s ):
-        result=""
-        try:
-            result=unicode( s, "cp950", errors='ignore' )
-        except BaseException, e:
-            #print map( lambda c: "%x" % ord(c), str )
-            raise e
-        return result
-
-    def extractContents( self, raw_list ):
+    def extract_contents(self, raw_list):
         contents = []
-        for s in raw_list:
-            contents.append( self.convert2unicode(
-                        self.empty_str.join(self.processString(s) ) ) )
+        for raw_text in raw_list:
+            text = self.process_string(raw_text)
+            contents.extend(text.split("\r\n"))
         return contents
 
+
+class DblByteOperation(BaseOperation):
+    """Decode Haodoo PDB text using CP950."""
+
+    escape_char = b"\x1b"
+
+    def process_string(self, raw_text):
+        return raw_text.split(b"\x00", 1)[0]
+
+    def convert_to_unicode(self, raw_text):
+        return raw_text.decode("cp950", errors="ignore")
+
+    def extract_contents(self, raw_list):
+        return [
+            self.convert_to_unicode(self.process_string(raw_text))
+            for raw_text in raw_list
+        ]
+
+
 class PDBFile:
-    """
-    The major class to read PDB file.
-    """
-    def __init__( self, pdb_filename ):
+    """Parse metadata and lazily read chapters from a PDB/uPDB file."""
+
+    def __init__(self, pdb_filename):
+        self.pdb_filename = os.fspath(pdb_filename)
         self.records = 0
-        self.pdb_filename = ""
         self.is_unicode = False
         self.chapter_start_offsets = []
         self.chapter_end_offsets = []
         self.book_name = ""
         self.contents = []
         self.chapters = 0
-        self.pdb_filename = pdb_filename
+        self.operation = None
 
-    def __parseHeader( self, f ):
-        # parse file header
-        header = f.read( PDB_HEADER_SIZE )
-        book_type = header[PDB_HEADER_BOOK_TYPE:PDB_HEADER_BOOK_TYPE+PDB_HEADER_BOOK_TYPE_LEN]
-        if book_type == "MTIU":
+    def _parse_header(self, file_obj):
+        header = file_obj.read(PDB_HEADER_SIZE)
+        if len(header) != PDB_HEADER_SIZE:
+            raise PDBException("PDB header is incomplete")
+
+        book_type = header[
+            PDB_HEADER_BOOK_TYPE:
+            PDB_HEADER_BOOK_TYPE + PDB_HEADER_BOOK_TYPE_LEN
+        ]
+        if book_type == b"MTIU":
             self.is_unicode = True
             self.operation = UnicodeOperation()
-            self.empty_str = u""
-        elif book_type == "MTIT":
-            self.is_unicode = False
+        elif book_type == b"MTIT":
             self.operation = DblByteOperation()
-            self.empty_str = ""
         else:
             raise PDBException("Not a PDB or uPDB")
-        self.records = (ord(header[PDB_HEADER_RECORD])<<8) + ord(header[PDB_HEADER_RECORD+1])
-        
-    def __parseChapterOffsets(self, f):
-        # get the offset of every chapters.
-        f.seek( PDB_CHAPTER_OFFSET, os.SEEK_SET )
-        for i in range( self.records ):
-            offset_record = f.read( 8 )
-            if len(offset_record)!=8:
-                raise PDBException( "Offset record size is not enough(8). %d" % i )
-            offset = (ord(offset_record[0])<<24) + (ord(offset_record[1])<<16) + (ord(offset_record[2])<<8) + ord(offset_record[3])
-            self.chapter_start_offsets.append( offset )
-        self.chapter_end_offsets = self.chapter_start_offsets[1:]
-        f.seek( 0, os.SEEK_END )
-        self.chapter_end_offsets.append( f.tell()+1 )
 
-    def __parseBasicInformation(self, f):
-        f.seek( self.chapter_start_offsets[0], os.SEEK_SET )
-        raw_text = f.read( self.chapter_end_offsets[0] - self.chapter_start_offsets[0] ) 
-        self.operation.parseBasicInformation( self, raw_text )
+        self.records = int.from_bytes(
+            header[PDB_HEADER_RECORD:PDB_HEADER_RECORD + 2], "big")
+        if self.records < 1:
+            raise PDBException("PDB contains no records")
 
-    def parse( self ):
-        """Must call parse() first to get PDB."""
-        f = None
-        try:
-            f = open( self.pdb_filename, "rb" )
-            self.__parseHeader(f)
-            self.__parseChapterOffsets(f)
-            self.__parseBasicInformation(f)
-        except BaseException, e:
-            raise e
-        finally:
-            if f:
-                f.close()
+    def _parse_chapter_offsets(self, file_obj):
+        file_obj.seek(PDB_CHAPTER_OFFSET, os.SEEK_SET)
+        for record_number in range(self.records):
+            offset_record = file_obj.read(8)
+            if len(offset_record) != 8:
+                raise PDBException(
+                    "Offset record size is not enough(8). %d" % record_number)
+            self.chapter_start_offsets.append(
+                int.from_bytes(offset_record[:4], "big"))
+
+        file_obj.seek(0, os.SEEK_END)
+        file_size = file_obj.tell()
+        if any(offset >= file_size for offset in self.chapter_start_offsets):
+            raise PDBException("PDB record offset is outside the file")
+        if self.chapter_start_offsets != sorted(self.chapter_start_offsets):
+            raise PDBException("PDB record offsets are not ordered")
+
+        self.chapter_end_offsets = self.chapter_start_offsets[1:] + [file_size]
+
+    def _parse_basic_information(self, file_obj):
+        start = self.chapter_start_offsets[0]
+        end = self.chapter_end_offsets[0]
+        file_obj.seek(start, os.SEEK_SET)
+        raw_text = file_obj.read(end - start)
+        self.operation.parse_basic_information(self, raw_text)
+
+        if self.chapters + 1 > self.records:
+            raise PDBException("PDB chapter count exceeds record count")
+
+    def parse(self):
+        """Parse and return this file object."""
+        self.chapter_start_offsets = []
+        self.chapter_end_offsets = []
+        with open(self.pdb_filename, "rb") as file_obj:
+            self._parse_header(file_obj)
+            self._parse_chapter_offsets(file_obj)
+            self._parse_basic_information(file_obj)
         return self
 
-    def chapter(self, num ):
-        """Read specified chapters."""
-        result = ""
-        chap = num + 1
-        if chap>self.chapters:
+    def chapter(self, num):
+        """Read a chapter by its zero-based index."""
+        if num < 0 or num >= self.chapters:
             return ""
-        f = None
-        try:
-            f = open( self.pdb_filename, "rb" )
-            f.seek( self.chapter_start_offsets[chap], os.SEEK_SET )
-            count=self.chapter_end_offsets[chap]-self.chapter_start_offsets[chap] 
-            raw_str = f.read( count )
-            text = self.empty_str.join( 
-                    self.operation.processString( raw_str ) )
-            result = self.operation.convert2unicode( text )
-        except BaseException, e:
-            print e
-        finally:
-            if f:
-                f.close()
-        return result
-    
+
+        record_number = num + 1
+        start = self.chapter_start_offsets[record_number]
+        end = self.chapter_end_offsets[record_number]
+        with open(self.pdb_filename, "rb") as file_obj:
+            file_obj.seek(start, os.SEEK_SET)
+            raw_text = file_obj.read(end - start)
+        return self.operation.convert_to_unicode(
+            self.operation.process_string(raw_text))
+
     def __str__(self):
-        book_type="PDB"
-        if self.is_unicode:
-            book_type="uPDB"
-        return """
-Filename: %s (%s)
-Records: %d
-Chapters: %d
-""" % (self.pdb_filename, book_type, self.records, self.chapters )
+        book_type = "uPDB" if self.is_unicode else "PDB"
+        return (
+            "\nFilename: %s (%s)\nRecords: %d\nChapters: %d\n" %
+            (self.pdb_filename, book_type, self.records, self.chapters)
+        )
+
 
 if __name__ == "__main__":
-    loc = locale.getdefaultlocale()
-    if loc[1]:
-        encoding = loc[1]
-    
-    argc = len( sys.argv )
-    chapter = 0
-    if argc<2:
-        print( """Need at least 1 argument.
-Usage: %s pdb_filename [chapter]""" % sys.argv[0] )
-        sys.exit(-1)
-    elif argc==3:
-        chapter=int(sys.argv[2])
-    
-    try:
-        pdb = PDBFile( sys.argv[1] ).parse()
-        print( "Book name: %s " % pdb.book_name.encode( encoding ) )
-        print( "Total %d chapters." % pdb.chapters )
-        for chapter_title in pdb.contents:
-            print( chapter_title.encode(encoding) )
-        print( pdb.chapter( chapter ).encode(encoding) )
-    except BaseException, e:
-        print e
+    if len(sys.argv) < 2:
+        print("Need at least 1 argument.\nUsage: %s pdb_filename [chapter]" %
+              sys.argv[0])
+        sys.exit(2)
 
+    chapter_number = int(sys.argv[2]) if len(sys.argv) == 3 else 0
+    try:
+        book = PDBFile(sys.argv[1]).parse()
+        print("Book name: %s" % book.book_name)
+        print("Total %d chapters." % book.chapters)
+        for title in book.contents:
+            print(title)
+        print(book.chapter(chapter_number))
+    except (OSError, PDBException, ValueError) as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)
