@@ -44,11 +44,16 @@ jobs:
       - name: Build .deb
         run: dpkg-buildpackage -us -uc -b
 
+      - name: Collect Debian package
+        run: |
+          mkdir -p artifacts
+          cp ../pymbook_*.deb artifacts/
+
       - name: Upload Debian package
         uses: actions/upload-artifact@v4
         with:
           name: debian-package
-          path: ../pymbook_*.deb
+          path: artifacts/*.deb
           if-no-files-found: error
 
   rpm:
@@ -70,7 +75,8 @@ jobs:
         run: |
           topdir="$HOME/rpmbuild"
           mkdir -p "$topdir"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-          git archive --format=tar --prefix=pymbook-0.4/ "$GITHUB_SHA" \
+          git -c safe.directory="$GITHUB_WORKSPACE" archive \
+            --format=tar --prefix=pymbook-0.4/ "$GITHUB_SHA" \
             | gzip -n > "$topdir/SOURCES/pymbook-0.4.tar.gz"
 
       - name: Build RPM
