@@ -5,7 +5,7 @@ import unittest
 from pymbooklib.pdb import PDBException, PDBFile
 
 
-def build_book(book_type, name, titles, chapters):
+def build_book(book_type, name, titles, chapters, ascii_chapter_count=False):
     if book_type == b"MTIT":
         escape = b"\x1b"
         encode = lambda text: text.encode("cp950")
@@ -15,8 +15,11 @@ def build_book(book_type, name, titles, chapters):
         encode = lambda text: text.encode("utf-16le")
         title_fields = [encode("\r\n".join(titles))]
 
+    chapter_count = str(len(chapters))
+    count_field = (chapter_count.encode("ascii") if ascii_chapter_count
+                   else encode(chapter_count))
     metadata = b"\x00" * 8 + escape.join(
-        [encode(name), encode("author"), encode(""), encode(str(len(chapters)))]
+        [encode(name), encode("author"), encode(""), count_field]
         + title_fields
     )
     chapter_records = []
@@ -77,6 +80,24 @@ class PDBFileTests(unittest.TestCase):
         self.assertEqual(book.contents, ["第一章", "第二章"])
         self.assertEqual(book.chapter(0), "第一段")
         self.assertEqual(book.chapter(1), "第二段")
+
+    def test_reads_updb_with_ascii_chapter_count(self):
+        for count in (1, 24):
+            with self.subTest(chapter_count=count):
+                chapters = ["內容"] * count
+                titles = ["章節"] * count
+                filename = self.write_book(build_book(
+                    b"MTIU", "測試書", titles, chapters,
+                    ascii_chapter_count=True))
+
+                book = PDBFile(filename).parse()
+
+                self.assertTrue(book.is_unicode)
+                self.assertEqual(book.book_name, "測試書")
+                self.assertEqual(book.chapters, count)
+                self.assertEqual(book.contents, titles)
+                self.assertEqual(book.chapter(0), "內容")
+                self.assertEqual(book.chapter(count - 1), "內容")
 
     def test_rejects_unknown_file_type(self):
         header = bytearray(78)

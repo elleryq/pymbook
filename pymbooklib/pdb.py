@@ -27,8 +27,7 @@ class BaseOperation:
             raise PDBException("PDB metadata record is incomplete")
 
         pdb.book_name = self.convert_to_unicode(self.process_string(fields[0]))
-        pdb.chapters = int(self.convert_to_unicode(
-            self.process_string(fields[3])))
+        pdb.chapters = self.extract_chapters(fields[3])
         pdb.contents = self.extract_contents(fields[4:])
         if pdb.chapters < 1:
             raise PDBException("PDB contains no chapters")
@@ -39,6 +38,9 @@ class BaseOperation:
     def convert_to_unicode(self, raw_text):
         raise NotImplementedError
 
+    def extract_chapters(self, raw_text):
+        return int(self.convert_to_unicode(self.process_string(raw_text)))
+
     def extract_contents(self, raw_list):
         raise NotImplementedError
 
@@ -47,6 +49,11 @@ class UnicodeOperation(BaseOperation):
     """Decode uPDB text stored as little-endian UTF-16."""
 
     escape_char = b"\x1b\x00"
+
+    def extract_chapters(self, raw_text):
+        if raw_text.isdigit():
+            return int(raw_text)
+        return super().extract_chapters(raw_text)
 
     def process_string(self, raw_text):
         units = []
