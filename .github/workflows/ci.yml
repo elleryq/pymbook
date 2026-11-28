@@ -40,8 +40,21 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
-            build-essential debhelper dh-python gettext intltool \
+            build-essential debhelper devscripts dh-python gettext intltool \
             python3-all python3-setuptools
+
+      - name: Set Debian package version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          version="${TAG_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unsupported release tag: $TAG_NAME" >&2
+            exit 1
+          fi
+          dch --newversion "${version}-0" --distribution unstable \
+            "Build release ${version} from tag ${TAG_NAME}."
 
       - name: Build .deb
         run: dpkg-buildpackage -us -uc -b
@@ -75,11 +88,21 @@ jobs:
       - name: Prepare RPM source archive
         shell: bash
         run: |
+          version="$(awk '/^Version:/ { print $2; exit }' pymbook.spec)"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Unsupported release tag: $GITHUB_REF_NAME" >&2
+              exit 1
+            fi
+            sed -i -E "s/^Version:[[:space:]]+.*/Version:        ${version}/" pymbook.spec
+          fi
+
           topdir="$HOME/rpmbuild"
           mkdir -p "$topdir"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
           git -c safe.directory="$GITHUB_WORKSPACE" archive \
-            --format=tar --prefix=pymbook-0.4/ "$GITHUB_SHA" \
-            | gzip -n > "$topdir/SOURCES/pymbook-0.4.tar.gz"
+            --format=tar --prefix="pymbook-${version}/" "$GITHUB_SHA" \
+            | gzip -n > "$topdir/SOURCES/pymbook-${version}.tar.gz"
 
       - name: Build RPM
         shell: bash
@@ -112,8 +135,8 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p release-assets
-          cp all-artifacts/debian-package/*.deb release-assets/ || true
-          cp all-artifacts/rpm-package/*.rpm release-assets/ || true
+          cp all-artifacts/debian-package/*.deb release-assets/
+          cp all-artifacts/rpm-package/*.rpm release-assets/
           ls -la release-assets/
 
       - name: Create Release
