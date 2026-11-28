@@ -105,8 +105,10 @@ jobs:
           git -c safe.directory="$GITHUB_WORKSPACE" archive \
             --format=tar --prefix="pymbook-${version}/" "$GITHUB_SHA" \
             | tar -x -C "$topdir/BUILD"
-          python3 "$source_dir/tools/set_release_version.py" "$version" \
-            --project-root "$source_dir"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            python3 "$source_dir/tools/set_release_version.py" "$version" \
+              --project-root "$source_dir"
+          fi
           tar -C "$topdir/BUILD" -czf "$topdir/SOURCES/pymbook-${version}.tar.gz" \
             "pymbook-${version}"
 
