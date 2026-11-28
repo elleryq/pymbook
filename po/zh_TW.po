@@ -40,6 +40,12 @@ msgstr "書頁"
 msgid "Cannot open specified pdb."
 msgstr "無法開啟指定的檔案。"
 
+msgid "Cannot read the bookshelf folder."
+msgstr "無法讀取書架目錄。"
+
+msgid "No books found."
+msgstr "書架中沒有書籍。"
+
 #: ../pymbooklib/mainwindow.py:295
 msgid "Distributed under the GPL3."
 msgstr "以 GPL3 散佈。"

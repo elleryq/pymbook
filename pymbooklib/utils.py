@@ -18,19 +18,29 @@
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
 
 """Utilities"""
-import glob
 import logging
 import os
 
 from .pdb import PDBFile
 
 
-def find_pdbs(path):
+def find_pdbs(path, *, strict=False):
     """Find all pdb/updb files according the specified path(absolute path).
     And return the filename lists which contain full path.
     """
-    pdbfiles = glob.glob(os.path.join(path, "*.pdb")) + glob.glob(
-        os.path.join(path, "*.updb"))
+    path = os.path.expanduser(path)
+    try:
+        with os.scandir(path or ".") as entries:
+            pdbfiles = [
+                os.path.join(path, entry.name) for entry in entries
+                if not entry.name.startswith(".")
+                and entry.name.endswith((".pdb", ".updb"))
+            ]
+    except OSError as error:
+        if strict:
+            raise
+        logging.warning("Cannot read bookshelf folder %s: %s", path, error)
+        return []
     books = []
     for pdb_filename in pdbfiles:
         try:

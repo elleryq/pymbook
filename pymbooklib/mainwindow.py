@@ -335,9 +335,24 @@ class MainWindow:
         # OK
         if result == Gtk.ResponseType.OK:
             selected_path = chooser_btn.get_filename()
-            if selected_path:
-                self.config[config.ENTRY_SHELF_PATH] = selected_path
-                self.config.save()
+            if selected_path and selected_path != shelf_path:
+                try:
+                    self.bookshelf.reload(selected_path)
+                except OSError as error:
+                    logging.error("Cannot read bookshelf folder %s: %s",
+                                  selected_path, error)
+                    dialog = Gtk.MessageDialog(
+                        parent=pref_dlg,
+                        flags=Gtk.DialogFlags.MODAL,
+                        message_type=Gtk.MessageType.ERROR,
+                        buttons=Gtk.ButtonsType.CLOSE,
+                        text=_("Cannot read the bookshelf folder."))
+                    dialog.format_secondary_text(str(error))
+                    dialog.run()
+                    dialog.destroy()
+                else:
+                    self.config[config.ENTRY_SHELF_PATH] = selected_path
+                    self.config.save()
         pref_dlg.destroy()
 
     def act_shelf_activate_cb(self, b):
