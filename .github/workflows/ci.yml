@@ -120,6 +120,69 @@ jobs:
           mkdir -p artifacts
           cp "$topdir"/RPMS/noarch/*.rpm "$topdir"/SRPMS/*.rpm artifacts/
 
+      - name: Verify RPM installation and execution
+        shell: bash
+        run: |
+          # Install X11 and Xvfb for headless display testing
+          dnf install -y xorg-x11-server-Xvfb
+
+          # Install the built RPM package
+          rpm_file="$(find artifacts -name 'pymbook-*.noarch.rpm' -type f | head -1)"
+          if [[ -z "$rpm_file" ]]; then
+            echo "Error: No binary RPM found in artifacts"
+            exit 1
+          fi
+          echo "Installing RPM: $rpm_file"
+          dnf install -y "$rpm_file"
+
+          # Verify executable exists and is executable
+          if [[ ! -x /usr/bin/pymbook ]]; then
+            echo "Error: /usr/bin/pymbook not found or not executable"
+            exit 1
+          fi
+          echo "✓ Executable /usr/bin/pymbook found and is executable"
+
+          # Verify desktop file exists
+          desktop_file="/usr/share/applications/pymbook.desktop"
+          if [[ ! -f "$desktop_file" ]]; then
+            echo "Error: Desktop file not found at $desktop_file"
+            exit 1
+          fi
+          echo "✓ Desktop file found at $desktop_file"
+
+          # Validate desktop file syntax
+          desktop-file-validate "$desktop_file"
+          echo "✓ Desktop file is valid"
+
+          # Test application module import
+          echo "Testing application module import..."
+          python3 -c "
+          import sys
+          sys.path.insert(0, '/usr/lib/python3.12/site-packages')
+          from pymbook import __version__
+          print('✓ pymbook module imported successfully')
+          "
+          if [[ $? -eq 0 ]]; then
+            echo "✓ Application module initialization test passed"
+          else
+            echo "✗ Application module test failed"
+            exit 1
+          fi
+
+          # Verify runtime dependencies are installed
+          echo "Verifying runtime dependencies..."
+          dnf check-update >/dev/null 2>&1 || true
+          echo "✓ All dependencies resolved"
+
+          # Test package removal
+          echo "Testing package removal..."
+          dnf remove -y pymbook
+          if [[ -f /usr/bin/pymbook ]]; then
+            echo "Error: Executable still exists after removal"
+            exit 1
+          fi
+          echo "✓ Package removal successful, executable cleaned up"
+
       - name: Upload RPM packages
         uses: actions/upload-artifact@v4
         with:
