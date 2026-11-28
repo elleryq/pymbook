@@ -1,5 +1,9 @@
 # Copilot instructions
 
+## Change workflow
+
+- Before making changes, create a branch. Make and commit the changes on that branch, push it, and open a pull request for user review.
+
 ## Build, run, and verify
 
 - The application requires Python 3.8+, GTK 3, PyGObject and Pycairo.
