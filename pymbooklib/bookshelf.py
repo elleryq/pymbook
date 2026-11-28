@@ -20,12 +20,15 @@
 """Bookshelf widget"""
 import logging
 
-from gi.repository import Gdk, GObject
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gdk, GObject, Gtk
 
 from .utils import find_pdbs
 from .utils import convert_columns_to_pages
 from .customdrawingarea import CustomDrawingArea
 from .pageddatasource import PagedDataSource
+from .translation import _
 
 class BookshelfWidget(CustomDrawingArea):
     __gsignals__ = dict(book_selected=(GObject.SignalFlags.RUN_FIRST,
@@ -45,6 +48,11 @@ class BookshelfWidget(CustomDrawingArea):
 
     def get_cell_size(self):
         return (self.font_size * 2, self.font_size + self.font_size // 3)
+
+    def reload(self, shelf_path):
+        self.books = find_pdbs(shelf_path, strict=True)
+        self.do_calc()
+        self.redraw_canvas()
 
     def do_calc(self):
         rect = self.get_allocation()
@@ -82,6 +90,8 @@ class BookshelfWidget(CustomDrawingArea):
 
     def expose(self, widget, cx):
         if not self.books:
+            layout = self.create_pango_layout(_("No books found."))
+            Gtk.render_layout(self.get_style_context(), cx, 10, 10, layout)
             return False
 
         # get canvas size
