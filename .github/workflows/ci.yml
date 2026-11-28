@@ -159,8 +159,8 @@ jobs:
           python3 -c "
           import sys
           sys.path.insert(0, '/usr/lib/python3.12/site-packages')
-          from pymbook import __version__
-          print('✓ pymbook module imported successfully')
+          from pymbook.version import APP_VERSION
+          print('✓ pymbook module imported successfully (version: ' + APP_VERSION + ')')
           "
           if [[ $? -eq 0 ]]; then
             echo "✓ Application module initialization test passed"
