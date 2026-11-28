@@ -75,8 +75,12 @@ setup(
     license="GPL-3.0-or-later",
     python_requires=">=3.8",
     install_requires=["PyGObject>=3.42", "pycairo>=1.20"],
-    scripts=["pymbook"],
-    packages=["pymbooklib"],
+    entry_points={
+        "console_scripts": [
+            "pymbook=pymbook.__main__:main",
+        ],
+    },
+    packages=["pymbook"],
     data_files=[
         ("share/pixmaps", ["data/icons/48x48/pymbook.png"]),
         (
@@ -90,7 +94,7 @@ setup(
         ("share/icons/hicolor/48x48/apps", glob.glob("data/icons/48x48/*.png")),
     ],
     package_data={
-        "pymbooklib": [
+        "pymbook": [
             "main_window.glade",
             "preference_dialog.glade",
             "haodoo_logo.png",

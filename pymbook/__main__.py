@@ -16,14 +16,14 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with pymbook.  If not, see <http://www.gnu.org/licenses/>.
-"""pymbook"""
+"""pymbook - Main entry point for module execution"""
 import sys
 
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-from pymbooklib.mainwindow import MainWindow
+from pymbook.mainwindow import MainWindow
 
 
 def main(arg):

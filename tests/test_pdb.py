@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from pymbooklib.pdb import PDBException, PDBFile
+from pymbook.pdb import PDBException, PDBFile
 
 
 def build_book(book_type, name, titles, chapters, ascii_chapter_count=False):

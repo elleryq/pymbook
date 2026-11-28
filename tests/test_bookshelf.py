@@ -9,9 +9,9 @@ try:
     gi.require_version("Gtk", "3.0")
     from gi.repository import Gtk
 
-    from pymbooklib import config, mainwindow
-    from pymbooklib.bookshelf import BookshelfWidget
-    from pymbooklib.translation import _
+    from pymbook import config, mainwindow
+    from pymbook.bookshelf import BookshelfWidget
+    from pymbook.translation import _
 except (ImportError, ValueError):
     Gtk = None
 
@@ -123,7 +123,7 @@ class BookshelfPreferenceTests(unittest.TestCase):
 
     def test_unreadable_directory_preserves_shelf_and_reports_error(self):
         with self.assertLogs(level="ERROR"):
-            with patch("pymbooklib.utils.os.scandir",
+            with patch("pymbook.utils.os.scandir",
                        side_effect=PermissionError("Access denied")):
                 with patch.object(mainwindow.Gtk, "MessageDialog") as message:
                     self.change_preference(self.new_path, Gtk.ResponseType.OK)

@@ -8,7 +8,7 @@ try:
     gi.require_version("Gdk", "3.0")
     from gi.repository import Gdk, GLib, Gtk
 
-    from pymbooklib.pdbcanvas import PDBCanvas
+    from pymbook.pdbcanvas import PDBCanvas
 except (ImportError, ValueError):
     Gdk = GLib = Gtk = PDBCanvas = None
 

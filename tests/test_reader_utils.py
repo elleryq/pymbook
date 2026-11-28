@@ -2,9 +2,9 @@ import os
 import tempfile
 import unittest
 
-from pymbooklib.config import Config, ENTRY_WIDTH
-from pymbooklib.pageddatasource import PagedDataSource
-from pymbooklib.utils import (
+from pymbook.config import Config, ENTRY_WIDTH
+from pymbook.pageddatasource import PagedDataSource
+from pymbook.utils import (
     convert_columns_to_pages, convert_pdb_to_pages, find_page_for_offset,
 )
 
